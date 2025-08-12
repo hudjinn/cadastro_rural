@@ -1,7 +1,7 @@
 {
   "name": "Cadastro de Produtores Rurais",
   "short_name": "Cadastro Rural",
-  "start_url": "/",
+  "start_url": "/cadastro_rural/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1976d2",

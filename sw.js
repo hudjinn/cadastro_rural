@@ -4,17 +4,17 @@ const CACHE_NAME = `cadastro-rural-${VERSION}`;
 
 // Use caminhos RELATIVOS ao escopo do SW e normalize para URL absoluta com base no escopo
 const PRECACHE_PATHS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './static/icon.png',
-  './static/css/bootstrap.min.css',
-  './static/css/bootstrap-icons.css',
-  './static/js/bootstrap.bundle.min.js',
-  './static/js/alpine.min.js',
-  './static/js/jszip.min.js',
-  './static/fonts/bootstrap-icons.woff2',
-  './static/fonts/bootstrap-icons.woff'
+  `${BASE}/`,
+  `${BASE}/index.html`,
+  `${BASE}/manifest.webmanifest`,
+  `${BASE}/static/icon.png`,
+  `${BASE}/static/css/bootstrap.min.css`,
+  `${BASE}/static/css/bootstrap-icons.css`,
+  `${BASE}/static/js/bootstrap.bundle.min.js`,
+  `${BASE}/static/js/alpine.min.js`,
+  `${BASE}/static/js/jszip.min.js`,
+  `${BASE}/static/fonts/bootstrap-icons.woff2`,
+  `${BASE}/static/fonts/bootstrap-icons.woff`
 ];
 const ASSETS = PRECACHE_PATHS.map(p => new URL(p, self.registration.scope).toString());
 
