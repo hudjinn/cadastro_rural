@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="theme-color" content="#1976d2">
+    <meta name="description" content="Formulário que utiliza geolocalização para cadastro de produtores rurais.">
+    <title>Cadastro de Produtores Rurais</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Cadastro Rural">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-TileColor" content="#1976d2">
+    <meta name="msapplication-config" content="none">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon" href="./static/icon.png">
+    <link rel="icon" href="./static/icon.png">
+    
+    <!-- Bootstrap CSS LOCAL -->
+    <link href="./static/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        // Detectar se Alpine.js carregou corretamente
+        let alpineLoadTimeout;
+        let loadingFallbackShown = false;
+        
+        function showLoadingFallback() {
+            if (!loadingFallbackShown) {
+                document.getElementById('loadingFallback').style.display = 'block';
+                loadingFallbackShown = true;
+            }
+        }
+        
+        function hideLoadingFallback() {
+            document.getElementById('loadingFallback').style.display = 'none';
+            loadingFallbackShown = false;
+        }
+        
+        // Mostrar fallback se Alpine não carregar em 2 segundos
+        alpineLoadTimeout = setTimeout(() => {
+            if (!window.Alpine || !window.Alpine.version) {
+                showLoadingFallback();
+                console.warn('Alpine.js não carregou. Verifique a conectividade ou recarregue a página.');
+            }
+        }, 2000);
+        
+        // Service Worker com melhor tratamento de erros
+        if ('serviceWorker' in navigator) {
+            const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            if (isSecure) {
+                navigator.serviceWorker.register('./sw.js', { scope: './' })
+                    .then(r => {
+                        console.log('SW registrado:', r.scope);
+                        // Verificar se há atualizações
+                        r.addEventListener('updatefound', () => {
+                            console.log('Nova versão do app disponível');
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Erro ao registrar SW:', err);
+                    });
+            } else {
+                alert('SW requer HTTPS ou localhost.');
+            }
+        }
+        
+        // Detectar quando Alpine.js carrega
+        document.addEventListener('alpine:init', () => {
+            clearTimeout(alpineLoadTimeout);
+            hideLoadingFallback();
+            console.log('Alpine.js carregado com sucesso');
+        });
+        
+        // Detectar problemas de carregamento de scripts
+        window.addEventListener('error', (e) => {
+            if (e.target.tagName === 'SCRIPT') {
+                console.error('Erro ao carregar script:', e.target.src);
+                showLoadingFallback();
+            }
+        });
+        
+        // Verificar se está online/offline
+        function updateOnlineStatus() {
+            const status = navigator.onLine ? 'online' : 'offline';
+            console.log('Status da rede:', status);
+            
+            if (!navigator.onLine) {
+                console.log('Aplicação funcionando offline');
+            }
+        }
+        
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus(); // Check inicial
+    </script>
+    <style>
+
+        .bi-person-fill {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-person-fill' viewBox='0 0 16 16'><path d='M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .bi-house-fill {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-house-fill' viewBox='0 0 16 16'><path d='M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 0-.5.5v1.293z'/><path d='m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293z'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .bi-flower1 {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-flower1' viewBox='0 0 16 16'><path d='M6.174 1.184a2 2 0 0 1 3.652 0A2 2 0 0 1 12.99 3.01a2 2 0 0 1 1.826 3.164 2 2 0 0 1 0 3.652 2 2 0 0 1-1.826 3.164 2 2 0 0 1-3.164 1.826 2 2 0 0 1-3.652 0A2 2 0 0 1 3.01 12.99a2 2 0 0 1-1.826-3.164 2 2 0 0 1 0-3.652A2 2 0 0 1 3.01 3.01a2 2 0 0 1 3.164-1.826zM8 1a1 1 0 0 0-.998 1.03l.01.091c.012.077.029.176.054.296.049.241.122.542.213.887.182.688.428 1.513.676 2.314L8 5.762l.045-.144c.248-.8.494-1.626.676-2.314.091-.345.164-.646.213-.887a4.997 4.997 0 0 0 .064-.386L9 2a1 1 0 0 0-1-1M2 9l.03-.002.091-.01a4.99 4.99 0 0 0 .296-.054c.241-.049.542-.122.887-.213a60.59 60.59 0 0 0 2.314-.676L5.762 8l-.144-.045a60.59 60.59 0 0 0-2.314-.676 16.705 16.705 0 0 0-.887-.213 4.99 4.99 0 0 0-.386-.064L2 7a1 1 0 1 0 0 2m7 5-.002-.03a5.005 5.005 0 0 0-.064-.386 16.398 16.398 0 0 0-.213-.888 60.582 60.582 0 0 0-.676-2.314L8 10.238l-.045.144c-.248.8-.494 1.626-.676 2.314-.091.345-.164.646-.213.887a4.996 4.996 0 0 0-.064.386L7 14a1 1 0 1 0 2 0m-5.696-2.134.025-.017a5.001 5.001 0 0 0 .303-.248c.184-.164.408-.377.661-.629A60.614 60.614 0 0 0 5.96 9.23l.103-.111-.147.033a60.88 60.88 0 0 0-2.343.572c-.344.093-.64.18-.874.258a5.063 5.063 0 0 0-.367.138l-.027.014a1 1 0 1 0 1 1.732zM4.5 14.062a1 1 0 0 0 1.366-.366l.014-.027c.01-.02.021-.048.036-.084a5.09 5.09 0 0 0 .102-.283c.078-.233.165-.53.258-.874a60.6 60.6 0 0 0 .572-2.343l.033-.147-.11.102a60.848 60.848 0 0 0-1.743 1.667 17.07 17.07 0 0 0-.629.66 5.06 5.06 0 0 0-.248.304l-.017.025a1 1 0 0 0 .366 1.366zm9.196-8.196a1 1 0 0 0-1-1.732l-.025.017a4.951 4.951 0 0 0-.303.248 16.69 16.69 0 0 0-.661.629A60.72 60.72 0 0 0 10.04 6.77l-.102.111.147-.033a60.6 60.6 0 0 0 2.342-.572c.345-.093.642-.18.875-.258a4.993 4.993 0 0 0 .367-.138.53.53 0 0 0 .027-.014zM11.5 1.938a1 1 0 0 0-1.366.366l-.014.027c-.01.02-.021.048-.036.084a5.09 5.09 0 0 0-.102.283c-.078.233-.165.53-.258.875a60.62 60.62 0 0 0-.572 2.342l-.033.147.11-.102a60.848 60.848 0 0 0 1.743-1.667c.252-.253.465-.477.629-.66a5.001 5.001 0 0 0 .248-.304l.017-.025a1 1 0 0 0-.366-1.366zM8 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .bi-egg-fill {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-egg-fill' viewBox='0 0 16 16'><path d='M14 10a6 6 0 0 1-12 0C2 5.686 5 0 8 0s6 5.686 6 10'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .bi-chat-left-text-fill {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-chat-left-text-fill' viewBox='0 0 16 16'><path d='M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4.414a1 1 0 0 0-.707.293L.854 15.146A.5.5 0 0 1 0 14.793zm3.5 1a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 2.5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1z'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .bi-plus-lg {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-plus-lg' viewBox='0 0 16 16'><path fill-rule='evenodd' d='M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .bi-trash {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-trash' viewBox='0 0 16 16'><path d='M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z'/><path d='M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        .bi-pencil {
+            background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-pencil' viewBox='0 0 16 16'><path d='M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325'/></svg>");
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: -.125em;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+        /* Estilos específicos do aplicativo */
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        .records-table {
+            font-size: 0.85rem;
+        }
+        .photo-preview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid #dee2e6;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+        }
+        .accordion-button:focus {
+            box-shadow: none;
+            border-color: rgba(0,0,0,.125);
+        }
+        .app-icon {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .btn-group .btn:not(:last-child) {
+            margin-right: 2px;
+        }
+        .form-text.text-success {
+            font-weight: 500;
+        }
+        .loading-fallback {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+        
+        /* Melhorias para dispositivos móveis e tablets */
+        @media (max-width: 768px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            
+            .table-responsive {
+                font-size: 0.8rem;
+            }
+            
+            .photo-preview {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .btn-group .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .form-floating > label {
+                font-size: 0.9rem;
+            }
+            
+            .accordion-button {
+                font-size: 0.95rem;
+                padding: 0.75rem 1rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .nav-tabs .nav-link {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .btn {
+                font-size: 0.85rem;
+            }
+            
+            .form-floating > .form-control {
+                font-size: 0.9rem;
+            }
+            
+            .app-icon {
+                width: 40px !important;
+                height: 40px !important;
+            }
+            
+            h1 {
+                font-size: 1.25rem;
+            }
+        }
+        
+        /* Garantir que inputs funcionem bem em touch */
+        .form-control:focus {
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        
+        /* Melhorar visualização de botões em touch */
+        .btn {
+            min-height: 38px;
+            min-width: 38px;
+            touch-action: manipulation;
+        }
+        
+        /* Evitar zoom indesejado no iOS */
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            font-size: 16px;
+        }
+        
+        @media (max-width: 576px) {
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            input[type="number"],
+            input[type="date"],
+            select,
+            textarea {
+                font-size: 16px; /* Manter 16px para evitar zoom no iOS */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fallback para quando JavaScript não carrega -->
+    <noscript>
+        <div class="alert alert-warning m-3">
+            <h4>JavaScript Necessário</h4>
+            <p>Este aplicativo requer JavaScript para funcionar. Por favor, habilite o JavaScript no seu navegador.</p>
+            <p><strong>Como habilitar JavaScript:</strong></p>
+            <ul>
+                <li><strong>Chrome/Edge:</strong> Configurações → Privacidade e segurança → Configurações do site → JavaScript</li>
+                <li><strong>Firefox:</strong> Digite "about:config" na barra de endereços → javascript.enabled</li>
+                <li><strong>Safari:</strong> Preferências → Segurança → Habilitar JavaScript</li>
+            </ul>
+        </div>
+    </noscript>
+    
+    <div class="loading-fallback" id="loadingFallback">
+        <div class="container text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <h4>Carregando aplicativo...</h4>
+            <p class="text-muted">Se esta mensagem persistir, verifique sua conexão ou recarregue a página.</p>
+            <button class="btn btn-primary" onclick="location.reload()">
+                <i class="bi-arrow-clockwise"></i> Recarregar Página
+            </button>
+        </div>
+    </div>
+
+    <div class="container py-4" x-data="formApp" x-show="true" x-transition>
+        <div class="app-title">
+            <div class="d-flex align-items-center mb-4">
+                <img src="./static/icon.png" alt="Ícone do aplicativo" class="app-icon" style="width: 50px; height: 50px; margin-right: 16px;">
+                <h1 class="mb-0">Cadastro do Produtor Rural</h1>
+            </div>
+        </div>
+        
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="form-tab" data-bs-toggle="tab" data-bs-target="#form-tab-pane" type="button" role="tab" aria-selected="true">
+                    <i class="bi-person-plus me-1"></i> Formulário
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data-tab-pane" type="button" role="tab" aria-selected="false">
+                    <i class="bi-table me-1"></i> Produtores Cadastrados
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="myTabContent">
+            <!-- Aba de Formulário -->
+
+            <div class="tab-pane fade show active" id="form-tab-pane" role="tabpanel" aria-labelledby="form-tab" tabindex="0">
+                <form @submit.prevent="saveData" class="needs-validation" novalidate>
+                    
+                    <div class="accordion" id="formAccordion">
+                        <!-- Seção 1: Dados do Produtor -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProdutor" aria-expanded="true" aria-controls="collapseProdutor">
+                                    <i class="bi-person-fill me-2"></i> Dados do Produtor
+                                </button>
+                            </h2>
+                            <div id="collapseProdutor" class="accordion-collapse collapse show" data-bs-parent="#formAccordion">
+                                <div class="accordion-body">
+                                    <!-- Conteúdo da seção Produtor -->
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="nome" placeholder="Nome" x-model="formData.nome" required>
+                                                <label for="nome">Nome Completo</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="cpf" placeholder="CPF" x-model="formData.cpf" required>
+                                                <label for="cpf">CPF</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="apelido" placeholder="Apelido" x-model="formData.apelido">
+                                                <label for="apelido">Apelido</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="tel" class="form-control" id="contato" placeholder="Contato" x-model="formData.contato" required>
+                                                <label for="contato">Contato</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="dap" x-model="formData.dap_caf" required>
+                                                    <option value="" selected disabled>Selecione</option>
+                                                    <option value="Sim">Sim</option>
+                                                    <option value="Não">Não</option>
+                                                </select>
+                                                <label for="dap">Possui DAP/CAF?</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="estadoCivil" x-model="formData.estadoCivil" required>
+                                                    <option value="" selected disabled>Selecione</option>
+                                                    <option value="Solteiro(a)">Solteiro(a)</option>
+                                                    <option value="Casado(a)">Casado(a)</option>
+                                                    <option value="Separado(a)">Separado(a)</option>
+                                                    <option value="Divorciado(a)">Divorciado(a)</option>
+                                                    <option value="Viúvo(a)">Viúvo(a)</option>
+                                                    <option value="União Estável">União Estável</option>
+                                                </select>
+                                                <label for="estadoCivil">Estado Civil</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Endereço -->
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Endereço</h6>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="logradouro" placeholder="Logradouro" x-model="formData.logradouro" required>
+                                                <label for="logradouro">Logradouro</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="bairro" placeholder="Bairro" x-model="formData.bairro" required>
+                                                <label for="bairro">Bairro</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="distrito" placeholder="Distrito" x-model="formData.distrito">
+                                                <label for="distrito">Distrito</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="date" class="form-control" id="dataVisita" x-model="formData.dataVisita" required>
+                                                <label for="dataVisita">Data da Visita</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Associação -->
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Associação</h6>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="participaAssociacao" x-model="formData.participaAssociacao" required>
+                                                    <option value="" selected disabled>Selecione</option>
+                                                    <option value="Sim">Sim</option>
+                                                    <option value="Não">Não</option>
+                                                </select>
+                                                <label for="participaAssociacao">Participa de Associação</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" x-show="formData.participaAssociacao === 'Sim'">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="qualAssociacao" placeholder="Qual Associação" x-model="formData.qualAssociacao" :required="formData.participaAssociacao === 'Sim'">
+                                                <label for="qualAssociacao">Qual Associação</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="pessoasFamilia" placeholder="Nº Pessoas da Família" x-model="formData.pessoasFamilia" min="1" required>
+                                                <label for="pessoasFamilia">Nº de Pessoas da Família</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seção 2: Propriedade -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePropriedade" aria-expanded="false" aria-controls="collapsePropriedade">
+                                    <i class="bi-house-fill me-2"></i> Propriedade Rural
+                                </button>
+                            </h2>
+                            <div id="collapsePropriedade" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="situacaoJuridica" x-model="formData.situacaoJuridica" required>
+                                                    <option value="" selected disabled>Selecione</option>
+                                                    <option value="Escritura Particular">Escritura Particular</option>
+                                                    <option value="Escritura Pública">Escritura Pública</option>
+                                                    <option value="Título IDACE">Título IDACE</option>
+                                                    <option value="Outros">Outros</option>
+                                                </select>
+                                                <label for="situacaoJuridica">Situação Jurídica</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Áreas da Propriedade</h6>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="areaTotal" x-model="formData.areaTotal" required>
+                                                <label for="areaTotal">Área Total (ha)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="areaCapineiraSequeiro" x-model="formData.areaCapineiraSequeiro">
+                                                <label for="areaCapineiraSequeiro">Área de Capineira Implantada Sequeiro (ha)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="areaPastagemNativa" x-model="formData.areaPastagemNativa">
+                                                <label for="areaPastagemNativa">Área Pastagem Nativa (ha)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="areaCultivoSequeiro" x-model="formData.areaCultivoSequeiro">
+                                                <label for="areaCultivoSequeiro">Área de Cultivo Sequeiro/Baixio (ha)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="areaCapimCana" x-model="formData.areaCapimCana">
+                                                <label for="areaCapimCana">Área de Capim/Cana (ha)</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Recursos</h6>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="recursosHidricos" x-model="formData.recursosHidricos" required>
+                                                <label for="recursosHidricos">Recursos Hídricos</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="tipoEnergia" x-model="formData.tipoEnergia" required>
+                                                    <option value="" selected disabled>Selecione</option>
+                                                    <option value="Monofásica">Monofásica</option>
+                                                    <option value="Trifásica">Trifásica</option>
+                                                    <option value="Solar">Solar</option>
+                                                    <option value="Não Possui">Não Possui</option>
+                                                </select>
+                                                <label for="tipoEnergia">Tipo de Energia</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select class="form-select" id="interesseFeira" x-model="formData.interesseFeira" required>
+                                                    <option value="" selected disabled>Selecione</option>
+                                                    <option value="Sim">Sim</option>
+                                                    <option value="Não">Não</option>
+                                                </select>
+                                                <label for="interesseFeira">Interesse em Participar da Feira da Agricultura Familiar</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Localização e Registro</h6>
+                                        </div>
+                                        <!-- Na seção onde mostramos a latitude e longitude -->
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Localização GPS</label>
+                                            <div class="input-group mb-2">
+                                                <button class="btn btn-outline-secondary" type="button" @click="getLocation" :disabled="gpsLoading">
+                                                    <i class="bi-geo-alt"></i>
+                                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" x-show="gpsLoading"></span>
+                                                    <span x-text="gpsLoading ? 'Obtendo...' : 'Obter GPS'"></span>
+                                                </button>
+                                                <button class="btn btn-outline-primary" type="button" @click="toggleManualEntry">
+                                                    <i class="bi-pencil"></i> Manual
+                                                </button>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <input type="number" step="any" class="form-control" placeholder="Latitude" 
+                                                           x-model="formData.latitude" 
+                                                           :readonly="!manualEntry"
+                                                           @input="updateGpsStatus">
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="number" step="any" class="form-control" placeholder="Longitude" 
+                                                           x-model="formData.longitude" 
+                                                           :readonly="!manualEntry"
+                                                           @input="updateGpsStatus">
+                                                </div>
+                                            </div>
+                                            <div class="form-text" x-text="formData.gpsStatus"></div>
+                                            <div class="form-text text-danger" x-text="gpsError" x-show="gpsError"></div>
+                                            <div class="form-text" x-show="formData.acuraciaGPS">
+                                                Precisão: <span x-text="formData.acuraciaGPS + ' metros'"></span>
+                                            </div>
+                                            <div class="form-text text-success" x-show="manualEntry">
+                                                <i class="bi-info-circle"></i> Modo de entrada manual ativado
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="photo" class="form-label">Foto da Propriedade</label>
+                                                <input class="form-control" type="file" id="photo" accept="image/*" @change="handlePhotoChange">
+                                                <img x-show="photoPreview" :src="photoPreview" class="preview-image mt-2" alt="Preview">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seção 3: Agricultura -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAgricultura" aria-expanded="false" aria-controls="collapseAgricultura">
+                                    <i class="bi-flower1 me-2"></i> Agricultura
+                                </button>
+                            </h2>
+                            <div id="collapseAgricultura" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                                <div class="accordion-body">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <h6 class="fw-bold mb-3">Culturas Anuais e Fruticultura</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-hover">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Produto</th>
+                                                            <th>Área Plantada/Pés</th>
+                                                            <th>Produção</th>
+                                                            <th>Ação</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <template x-for="(cultura, index) in formData.culturas" :key="index">
+                                                            <tr>
+                                                                <td>
+                                                                    <select class="form-select form-select-sm" x-model="cultura.produto" required>
+                                                                        <option value="" selected disabled>Selecione</option>
+                                                                        <option value="Abóbora">Abóbora</option>
+                                                                        <option value="Acerola">Acerola</option>
+                                                                        <option value="Algodão herbáceo">Algodão herbáceo</option>
+                                                                        <option value="Arroz">Arroz</option>
+                                                                        <option value="Banana">Banana</option>
+                                                                        <option value="Batata doce">Batata doce</option>
+                                                                        <option value="Caju/Castanha">Caju/Castanha</option>
+                                                                        <option value="Cana-de-açúcar">Cana-de-açúcar</option>
+                                                                        <option value="Coco/Água de coco">Coco/Água de coco</option>
+                                                                        <option value="Fava em grão">Fava em grão</option>
+                                                                        <option value="Feijão">Feijão</option>
+                                                                        <option value="Goiaba">Goiaba</option>
+                                                                        <option value="Mamão">Mamão</option>
+                                                                        <option value="Manga">Manga</option>
+                                                                        <option value="Mandioca/Macaxeira">Mandioca/Macaxeira</option>
+                                                                        <option value="Milho">Milho</option>
+                                                                        <option value="Palma forrageira">Palma forrageira</option>
+                                                                        <option value="Sorgo forrageiro">Sorgo forrageiro</option>
+                                                                        <option value="Tomate irrigado">Tomate irrigado</option>
+
+                                                                    </select>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="cultura.areaPlantada" min="0" required placeholder="Área/Quantidade">
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="cultura.producao" min="0" required placeholder="Produção">
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger" @click="removerCultura(index)">
+                                                       <i class="bi-trash"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </template>
+                                                        <tr x-show="formData.culturas.length === 0">
+                                                            <td colspan="4" class="text-center py-3 text-muted">
+                                                                Nenhuma cultura cadastrada. Clique no botão abaixo para adicionar.
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="4">
+                                                                <button type="button" class="btn btn-sm btn-outline-success w-100" @click="adicionarCultura">
+                                                                    <i class="bi-plus-lg me-1"></i>
+                                                                    Adicionar Cultura
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <hr class="my-3">
+                                            <h6 class="fw-bold mb-3">Reserva Alimentar para o Rebanho</h6>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="areaProducaoSilagem" x-model="formData.reservaAlimentar.areaProducaoSilagem" min="0">
+                                                <label for="areaProducaoSilagem">Área de Produção de Silagem (ha)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="especieForrageira" x-model="formData.reservaAlimentar.especieForrageira">
+                                                <label for="especieForrageira">Espécie Forrageira</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="quantidadeToneladas" x-model="formData.reservaAlimentar.quantidadeToneladas" min="0" step="0.1">
+                                                <label for="quantidadeToneladas">Quantidade em Toneladas</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seção 4: Pecuária -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePecuaria" aria-expanded="false" aria-controls="collapsePecuaria">
+                                    <i class="bi-egg-fill me-2"></i> Pecuária
+                                </button>
+                            </h2>
+                            <div id="collapsePecuaria" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                                <div class="accordion-body">
+                                    <!-- Bovinocultura -->
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <h6 class="fw-bold mb-3">Bovinocultura</h6>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="rebanho" x-model="formData.bovinocultura.rebanho" min="0">
+                                                <label for="rebanho">Rebanho (cabeças)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="matrizes" x-model="formData.bovinocultura.matrizes" min="0">
+                                                <label for="matrizes">Matrizes</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="producaoLeite" x-model="formData.bovinocultura.producaoLeite" min="0" step="0.1">
+                                                <label for="producaoLeite">Produção Média de Leite/Dia (L)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="producaoQueijo" x-model="formData.bovinocultura.producaoQueijo" min="0" step="0.1">
+                                                <label for="producaoQueijo">Produção de Queijo (kg)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Suinocultura -->
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Suinocultura</h6>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="rebanhoSuinos" x-model="formData.suinocultura.rebanho" min="0">
+                                                <label for="rebanhoSuinos">Rebanho</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="matrizesSuinos" x-model="formData.suinocultura.matrizes" min="0">
+                                                <label for="matrizesSuinos">Matrizes</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="animaisComercializadosAnoSuinos" x-model="formData.suinocultura.animaisComercializadosAno" min="0">
+                                                <label for="animaisComercializadosAnoSuinos">Animais Comercializados/Ano</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Avicultura -->
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Avicultura</h6>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="matrizesPostura" x-model="formData.avicultura.matrizesPostura" min="0">
+                                                <label for="matrizesPostura">Matrizes/Postura</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="producaoOvosMes" x-model="formData.avicultura.producaoOvosMes" min="0">
+                                                <label for="producaoOvosMes">Produção de Ovos/Mês</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="precoMedioUnidade" x-model="formData.avicultura.precoMedioUnidade" min="0">
+                                                <label for="precoMedioUnidade">Preço Médio/Unidade (R$)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="frangoAbate" x-model="formData.avicultura.frangoAbate" min="0">
+                                                <label for="frangoAbate">Frango para Abate</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="animaisComercializadosAnoAves" x-model="formData.avicultura.animaisComercializadosAno" min="0">
+                                                <label for="animaisComercializadosAnoAves">Animais Comercializados/Ano</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="precoMedioKg" x-model="formData.avicultura.precoMedioKg" min="0">
+                                                <label for="precoMedioKg">Preço Médio/Kg (R$)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Apicultura -->
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Apicultura</h6>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="quantidadeColmeias" x-model="formData.apicultura.quantidadeColmeias" min="0">
+                                                <label for="quantidadeColmeias">Quantidade de Colmeias</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="colmeiasPovoadas" x-model="formData.apicultura.colmeiasPovoadas" min="0">
+                                                <label for="colmeiasPovoadas">Colmeias Povoadas</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.1" class="form-control" id="producaoAnual" x-model="formData.apicultura.producaoAnual" min="0">
+                                                <label for="producaoAnual">Produção Anual (Kg)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Ovino e Caprino -->
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Ovino e Caprino</h6>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="quantidadeOvino" x-model="formData.ovinocaprino.quantidadeOvino" min="0">
+                                                <label for="quantidadeOvino">Quantidade de Ovino</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="quantidadeCaprino" x-model="formData.ovinocaprino.quantidadeCaprino" min="0">
+                                                <label for="quantidadeCaprino">Quantidade de Caprino</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="ovinosComercializadosAno" x-model="formData.ovinocaprino.ovinosComercializadosAno" min="0">
+                                                <label for="ovinosComercializadosAno">Ovinos Comercializados por Ano</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="caprinosComercializadosAno" x-model="formData.ovinocaprino.caprinosComercializadosAno" min="0">
+                                                <label for="caprinosComercializadosAno">Caprinos Comercializados por Ano</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="fw-bold mb-3">Piscicultura</h6>
+                                            <div class="col-md-6">
+                                                <div class="form-floating">
+                                                    <input type="number" class="form-control" id="producaoPeixe" x-model="formData.piscicultura.producaoPeixe" min="0">
+                                                    <label for="producaoPeixe">Produção de Peixe (kg)</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Observações -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseObservacoes" aria-expanded="false" aria-controls="collapseObservacoes">
+                                    <i class="bi-chat-left-text-fill me-2"></i> Observações
+                                </button>
+                            </h2>
+                            <div id="collapseObservacoes" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                                <div class="accordion-body">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" id="observacoes" style="height: 120px" x-model="formData.observacoes" placeholder="Observações"></textarea>
+                                        <label for="observacoes">Observações</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões de ação -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="button" class="btn btn-outline-secondary" @click="resetForm">
+                            <i class="bi-arrow-clockwise me-1"></i> Limpar Formulário
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi-save me-1"></i> Salvar Cadastro
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Aba de Dados Salvos -->
+            <div class="tab-pane fade" id="data-tab-pane" role="tabpanel" aria-labelledby="data-tab" tabindex="0">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">Produtores Cadastrados</h5>
+                    </div>
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button class="btn btn-sm btn-success" @click="exportarCSV">
+                                <i class="bi-file-earmark-spreadsheet me-1"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped records-table mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>CPF</th>
+                                        <th>Contato</th>
+                                        <th>Situação Jurídica</th>
+                                        <th>Foto</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="(item, index) in savedData" :key="index">
+                                        <tr>
+                                            <td x-text="item.nome"></td>
+                                            <td x-text="item.cpf"></td>
+                                            <td x-text="item.contato"></td>
+                                            <td x-text="item.situacaoJuridica"></td>
+                                            <td>
+                                                <img x-show="item.photoBase64" :src="item.photoBase64" class="photo-preview" alt="Foto da Propriedade">
+                                                <span x-show="!item.photoBase64" class="badge bg-secondary">Sem foto</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary" @click="editItem(index)" title="Editar">
+                                                        <i class="bi-pencil"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger" @click="deleteItem(index)" title="Excluir">
+                                                        <i class="bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="savedData.length === 0">
+                                        <td colspan="6" class="text-center py-3">Nenhum produtor cadastrado.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts locais (SEM internet) -->
+    <script src="./static/js/jszip.min.js"></script>
+    <script src="./static/js/bootstrap.bundle.min.js"></script>
+    <script defer src="./static/js/alpine.min.js"></script>
+    
+    <script>
+        function normalizarTexto(texto) {
+            return texto
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                .replace(/[^a-zA-Z0-9_]/g, '_') // Substitui caracteres especiais por _
+                .replace(/_{2,}/g, '_') // Remove underscores múltiplos
+                .toLowerCase();
+        }
+        
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('formApp', () => ({
+                locationStatus: 'idle', // idle, loading, success, error, denied
+                locationError: '',
+                formData: {
+                    nome: '',
+                    cpf: '',
+                    apelido: '',
+                    contato: '',
+                    dap_caf: '',
+                    estadoCivil: '',
+                    logradouro: '',
+                    bairro: '',
+                    distrito: '',
+                    dataVisita: '',
+                    participaAssociacao: '',
+                    qualAssociacao: '',
+                    pessoasFamilia: '',
+                    situacaoJuridica: '',
+                    areaTotal: '',
+                    areaCapineiraSequeiro: '',
+                    areaPastagemNativa: '',
+                    areaCultivoSequeiro: '',
+                    areaCapimCana: '',
+                    recursosHidricos: '',
+                    tipoEnergia: '',
+                    interesseFeira: '',
+                    latitude: '',
+                    longitude: '',
+                    acuraciaGPS: '', // Nova propriedade para a acurácia em metros
+                    gpsStatus: 'Aguardando localização...',
+                    photoBase64: '',
+                    culturas: [],
+                    reservaAlimentar: {
+                        areaProducaoSilagem: '',
+                        especieForrageira: '',
+                        quantidadeToneladas: ''
+                    },
+                    bovinocultura: {
+                        rebanho: '',
+                        matrizes: '',
+                        producaoLeite: '',
+                        producaoQueijo: ''
+                    },
+                    suinocultura: {
+                        rebanho: '',
+                        matrizes: '',
+                        animaisComercializadosAno: ''
+                    },
+                    avicultura: {
+                        matrizesPostura: '',
+                        producaoOvosMes: '',
+                        precoMedioUnidade: '',
+                        frangoAbate: '',
+                        animaisComercializadosAno: '',
+                        precoMedioKg: ''
+                    },
+                    apicultura: {
+                        quantidadeColmeias: '',
+                        colmeiasPovoadas: '',
+                        producaoAnual: ''
+                    },
+                    ovinocaprino: {
+                        quantidadeOvino: '',
+                        quantidadeCaprino: '',
+                        ovinosComercializadosAno: '',
+                        caprinosComercializadosAno: ''
+                    },
+                    piscicultura: {
+                        producaoPeixe: ''
+                    },
+                    observacoes: ''
+                },
+                savedData: [],
+                photoPreview: null,
+                gpsError: null,
+                editIndex: -1,
+                gpsLoading: false,
+                manualEntry: false,
+                
+                getGPSErrorMessage(error) {
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            return "Permissão de localização negada. Habilite a localização nas configurações do navegador.";
+                        case error.POSITION_UNAVAILABLE:
+                            return "Localização indisponível. Verifique se o GPS está ativo.";
+                        case error.TIMEOUT:
+                            return "Tempo limite excedido. Tente novamente.";
+                        default:
+                            return "Erro desconhecido ao obter localização.";
+                    }
+                },
+                
+                toggleManualEntry() {
+                    this.manualEntry = !this.manualEntry;
+                    if (this.manualEntry) {
+                        this.formData.gpsStatus = 'Entrada manual ativada';
+                        this.gpsError = null;
+                    } else {
+                        this.formData.gpsStatus = 'Aguardando localização...';
+                    }
+                },
+                
+                updateGpsStatus() {
+                    if (this.formData.latitude && this.formData.longitude) {
+                        this.formData.gpsStatus = 'Coordenadas inseridas manualmente';
+                        this.gpsError = null;
+                    }
+                },
+                
+                getLocation() {
+                    if (!navigator.geolocation) {
+                        this.formData.gpsStatus = 'Geolocalização não suportada';
+                        this.gpsError = "Seu navegador não suporta geolocalização.";
+                        return;
+                    }
+                    
+                    // Verificar se estamos em HTTPS ou localhost
+                    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+                    
+                    if (!isSecure) {
+                        this.gpsError = "GPS requer HTTPS para funcionar em rede. Use entrada manual ou acesse via localhost.";
+                        this.formData.gpsStatus = 'GPS indisponível (HTTP)';
+                        return;
+                    }
+                    
+                    this.gpsLoading = true;
+                    this.formData.gpsStatus = 'Obtendo localização...';
+                    this.gpsError = null;
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            this.gpsLoading = false;
+                            this.formData.latitude = position.coords.latitude.toFixed(8);
+                            this.formData.longitude = position.coords.longitude.toFixed(8);
+                            this.formData.acuraciaGPS = Math.round(position.coords.accuracy);
+                            this.formData.gpsStatus = 'Localização obtida com sucesso!';
+                            this.gpsError = null;
+                        },
+                        (error) => {
+                            this.gpsLoading = false;
+                            this.formData.gpsStatus = 'Erro ao obter localização';
+                            this.gpsError = this.getGPSErrorMessage(error);
+                            console.error("Erro de geolocalização:", error);
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 0
+                        }
+                    );
+                },
+                exportarCSV() {
+                    if (this.savedData.length === 0) {
+                        alert('Não há dados para exportar.');
+                        return;
+                    }
+                    
+                    // Verificar se JSZip está disponível
+                    if (typeof JSZip === 'undefined') {
+                        alert('Biblioteca JSZip não encontrada. Por favor, recarregue a página ou verifique a conexão.');
+                        return;
+                    }
+                    
+                    try {
+                        // Criar novo ZIP
+                        const zip = new JSZip();
+                        
+                        // Criar pasta para as fotos dentro do ZIP
+                        const pastaFotos = zip.folder("fotos");
+                        
+                        // Cabeçalho do CSV
+                        let csvContent = "Nome,CPF,Apelido,Contato,DAP/CAF,Estado Civil,Logradouro,Bairro,Distrito,Data Visita," +
+                            "Participa Associacao,Qual Associacao,Pessoas Familia,Situacao Juridica,Area Total (ha)," +
+                            "Area Capineira Sequeiro (ha),Area Pastagem Nativa (ha),Area Cultivo Sequeiro (ha),Area Capim/Cana (ha)," +
+                            "Recursos Hidricos,Tipo Energia,Interesse Feira,Latitude,Longitude,Acuracia GPS (m)," +
+                            "Reserva Alimentar - Area Silagem (ha),Reserva Alimentar - Especie,Reserva Alimentar - Qtde (ton)," +
+                            "Bovinos - Rebanho,Bovinos - Matrizes,Bovinos - Producao Leite/Dia,Bovinos - Producao de Queijo," +
+                            "Suinos - Rebanho,Suinos - Matrizes,Suinos - Comercializados/Ano," + 
+                            "Aves - Matrizes/Postura,Aves - Producao Ovos/Mes,Aves - Preco Medio/Unidade," + 
+                            "Aves - Frango Abate,Aves - Comercializados/Ano,Aves - Preco Medio/Kg," +
+                            "Apicultura - Qtde Colmeias,Apicultura - Colmeias Povoadas,Apicultura - Producao Anual (kg)," +
+                            "Ovinos - Quantidade,Caprinos - Quantidade,Ovinos - Comercializados/Ano,Caprinos - Comercializados/Ano," +
+                            "Piscicultura - Producao Peixe (kg)," +
+                            "Observacoes,Nome Arquivo Foto\n";
+                        
+                        // Adicionar dados completos dos produtores
+                        this.savedData.forEach((produtor, idx) => {
+                            // Gerar nome de arquivo para a foto
+                            let nomeArquivo = '';
+                            if (produtor.photoBase64) {
+                                const nomeNormalizado = produtor.nome ? normalizarTexto(produtor.nome) : `produtor_${idx + 1}`;
+                                const formatoImagem = produtor.photoBase64 ? produtor.photoBase64.split(';')[0].split('/')[1] : 'jpg';
+                                nomeArquivo = `${nomeNormalizado}.${formatoImagem}`;
+                                
+                                // Extrair a parte de dados da string base64
+                                const base64Data = produtor.photoBase64.split(',')[1];
+                                // Adicionar foto à pasta de fotos no ZIP
+                                pastaFotos.file(nomeArquivo, base64Data, {base64: true});
+                            }
+                            
+                            // Adicionar linha ao CSV com nome do arquivo
+                            csvContent += [
+                                `"${produtor.nome || ''}"`,
+                                `"${produtor.cpf || ''}"`,
+                                `"${produtor.apelido || ''}"`,
+                                `"${produtor.contato || ''}"`,
+                                `"${produtor.dap_caf || ''}"`,
+                                `"${produtor.estadoCivil || ''}"`,
+                                `"${produtor.logradouro || ''}"`,
+                                `"${produtor.bairro || ''}"`,
+                                `"${produtor.distrito || ''}"`,
+                                `"${produtor.dataVisita || ''}"`,
+                                `"${produtor.participaAssociacao || ''}"`,
+                                `"${produtor.qualAssociacao || ''}"`,
+                                `"${produtor.pessoasFamilia || ''}"`,
+                                `"${produtor.situacaoJuridica || ''}"`,
+                                `"${produtor.areaTotal || ''}"`,
+                                `"${produtor.areaCapineiraSequeiro || ''}"`,
+                                `"${produtor.areaPastagemNativa || ''}"`,
+                                `"${produtor.areaCultivoSequeiro || ''}"`,
+                                `"${produtor.areaCapimCana || ''}"`,
+                                `"${produtor.recursosHidricos || ''}"`,
+                                `"${produtor.tipoEnergia || ''}"`,
+                                `"${produtor.interesseFeira || ''}"`,
+                                `"${produtor.latitude || ''}"`,
+                                `"${produtor.longitude || ''}"`,
+                                `"${produtor.acuraciaGPS || ''}"`,
+                                `"${(produtor.reservaAlimentar && produtor.reservaAlimentar.areaProducaoSilagem) || ''}"`,
+                                `"${(produtor.reservaAlimentar && produtor.reservaAlimentar.especieForrageira) || ''}"`,
+                                `"${(produtor.reservaAlimentar && produtor.reservaAlimentar.quantidadeToneladas) || ''}"`,
+                                `"${(produtor.bovinocultura && produtor.bovinocultura.rebanho) || ''}"`,
+                                `"${(produtor.bovinocultura && produtor.bovinocultura.matrizes) || ''}"`,
+                                `"${(produtor.bovinocultura && produtor.bovinocultura.producaoLeite) || ''}"`,
+                                `"${(produtor.bovinocultura && produtor.bovinocultura.producaoQueijo) || ''}"`,
+                                `"${(produtor.suinocultura && produtor.suinocultura.rebanho) || ''}"`,
+                                `"${(produtor.suinocultura && produtor.suinocultura.matrizes) || ''}"`,
+                                `"${(produtor.suinocultura && produtor.suinocultura.animaisComercializadosAno) || ''}"`,
+                                `"${(produtor.avicultura && produtor.avicultura.matrizesPostura) || ''}"`,
+                                `"${(produtor.avicultura && produtor.avicultura.producaoOvosMes) || ''}"`,
+                                `"${(produtor.avicultura && produtor.avicultura.precoMedioUnidade) || ''}"`,
+                                `"${(produtor.avicultura && produtor.avicultura.frangoAbate) || ''}"`,
+                                `"${(produtor.avicultura && produtor.avicultura.animaisComercializadosAno) || ''}"`,
+                                `"${(produtor.avicultura && produtor.avicultura.precoMedioKg) || ''}"`,
+                                `"${(produtor.apicultura && produtor.apicultura.quantidadeColmeias) || ''}"`,
+                                `"${(produtor.apicultura && produtor.apicultura.colmeiasPovoadas) || ''}"`,
+                                `"${(produtor.apicultura && produtor.apicultura.producaoAnual) || ''}"`,
+                                `"${(produtor.ovinocaprino && produtor.ovinocaprino.quantidadeOvino) || ''}"`,
+                                `"${(produtor.ovinocaprino && produtor.ovinocaprino.quantidadeCaprino) || ''}"`,
+                                `"${(produtor.ovinocaprino && produtor.ovinocaprino.ovinosComercializadosAno) || ''}"`,
+                                `"${(produtor.ovinocaprino && produtor.ovinocaprino.caprinosComercializadosAno) || ''}"`,
+                                `"${(produtor.piscicultura && produtor.piscicultura.producaoPeixe) || ''}"`,
+                                `"${(produtor.observacoes || '').replace(/"/g, '""')}"`, // Escapa aspas duplas dentro do texto
+                                `"${nomeArquivo}"` // Nome do arquivo da foto
+                            ].join(',') + '\n';
+                        });
+                        
+                        // Adicionar o CSV principal ao ZIP
+                        zip.file("produtores_rurais.csv", csvContent);
+                        
+                        // Criar culturas CSV
+                        let culturasCsvContent = "Produtor,Cultura,Area Plantada/Pes,Producao\n";
+                        let temCulturas = false;
+                        
+                        this.savedData.forEach(produtor => {
+                            if (produtor.culturas && produtor.culturas.length > 0) {
+                                temCulturas = true;
+                                produtor.culturas.forEach(cultura => {
+                                    culturasCsvContent += [
+                                        `"${produtor.nome || ''}"`,
+                                        `"${cultura.produto || ''}"`,
+                                        `"${cultura.areaPlantada || ''}"`,
+                                        `"${cultura.producao || ''}"`
+                                    ].join(',') + '\n';
+                                });
+                            }
+                        });
+                        
+                        // Adicionar CSV de culturas ao ZIP se houver dados
+                        if (temCulturas) {
+                            zip.file("culturas_agricolas.csv", culturasCsvContent);
+                        }
+                        
+                        // Adicionar um README.txt explicativo
+                        const readme = "Exportacao de dados do Sistema de Cadastro de Produtores Rurais\n" +
+                                       "==========================================================\n\n" +
+                                       "Este arquivo ZIP contem:\n" +
+                                       "1. produtores_rurais.csv - Dados completos de todos os produtores cadastrados\n" +
+                                       (temCulturas ? "2. culturas_agricolas.csv - Detalhes das culturas agricolas por produtor\n" : "") +
+                                       "3. /fotos/ - Diretorio contendo as fotos das propriedades (quando disponiveis)\n\n" +
+                                       "Data da exportacao: " + new Date().toLocaleString('pt-BR') + "\n";
+                        
+                        zip.file("LEIA-ME.txt", readme);
+                        
+                        // Gerar o ZIP e iniciar download
+                        zip.generateAsync({type: "blob"})
+                            .then((content) => {
+                                const link = document.createElement("a");
+                                link.href = URL.createObjectURL(content);
+                                link.download = "cadastro_produtores_rurais.zip";
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                
+                                // Liberar o URL objeto após o download
+                                setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+                            })
+                            .catch(err => {
+                                console.error("Erro ao criar arquivo ZIP:", err);
+                                alert("Ocorreu um erro ao criar o arquivo ZIP. Verifique o console para mais detalhes.");
+                            });
+                    } catch (error) {
+                        console.error("Erro na exportação:", error);
+                        alert("Erro durante a exportação. Verifique se há dados válidos e tente novamente.");
+                    }
+                },
+                
+                handlePhotoChange(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        // Verificar tamanho do arquivo (máximo 5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert('Arquivo muito grande. Por favor, escolha uma imagem menor que 5MB.');
+                            return;
+                        }
+                        
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.photoPreview = e.target.result;
+                            this.formData.photoBase64 = e.target.result;
+                        };
+                        reader.onerror = () => {
+                            alert('Erro ao ler o arquivo de imagem.');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                
+                adicionarCultura() {
+                    this.formData.culturas.push({ produto: '', areaPlantada: '', producao: '' });
+                },
+                
+                removerCultura(index) {
+                    this.formData.culturas.splice(index, 1);
+                },
+                
+                saveData() {
+                    const formElement = document.querySelector('form');
+                    if (!formElement.checkValidity()) {
+                        formElement.classList.add('was-validated');
+                        alert('Por favor, preencha todos os campos obrigatórios.');
+                        return;
+                    }
+                    
+                    try {
+                        if (this.editIndex >= 0) {
+                            this.savedData[this.editIndex] = JSON.parse(JSON.stringify(this.formData));
+                            this.editIndex = -1;
+                            alert('Dados atualizados com sucesso!');
+                        } else {
+                            this.savedData.push(JSON.parse(JSON.stringify(this.formData)));
+                            alert('Dados salvos com sucesso!');
+                        }
+                        
+                        localStorage.setItem('produtoresData', JSON.stringify(this.savedData));
+                        this.resetForm();
+                        
+                        // Muda para a aba de listagem
+                        document.getElementById('data-tab').click();
+                    } catch (error) {
+                        console.error('Erro ao salvar dados:', error);
+                        alert('Erro ao salvar os dados. Tente novamente.');
+                    }
+                },
+                
+                resetForm() {
+                    this.formData = {
+                        nome: '',
+                        cpf: '',
+                        apelido: '',
+                        contato: '',
+                        dap_caf: '',
+                        estadoCivil: '',
+                        logradouro: '',
+                        bairro: '',
+                        distrito: '',
+                        dataVisita: '',
+                        participaAssociacao: '',
+                        qualAssociacao: '',
+                        pessoasFamilia: '',
+                        situacaoJuridica: '',
+                        areaTotal: '',
+                        areaCapineiraSequeiro: '',
+                        areaPastagemNativa: '',
+                        areaCultivoSequeiro: '',
+                        areaCapimCana: '',
+                        recursosHidricos: '',
+                        tipoEnergia: '',
+                        interesseFeira: '',
+                        latitude: '',
+                        longitude: '',
+                        acuraciaGPS: '',
+                        gpsStatus: 'Aguardando localização...',
+                        photoBase64: '',
+                        culturas: [],
+                        reservaAlimentar: {
+                            areaProducaoSilagem: '',
+                            especieForrageira: '',
+                            quantidadeToneladas: ''
+                        },
+                        bovinocultura: {
+                            rebanho: '',
+                            matrizes: '',
+                            producaoLeite: '',
+                            producaoQueijo: ''
+                        },
+                        suinocultura: {
+                            rebanho: '',
+                            matrizes: '',
+                            animaisComercializadosAno: ''
+                        },
+                        avicultura: {
+                            matrizesPostura: '',
+                            producaoOvosMes: '',
+                            precoMedioUnidade: '',
+                            frangoAbate: '',
+                            animaisComercializadosAno: '',
+                            precoMedioKg: ''
+                        },
+                        apicultura: {
+                            quantidadeColmeias: '',
+                            colmeiasPovoadas: '',
+                            producaoAnual: ''
+                        },
+                        ovinocaprino: {
+                            quantidadeOvino: '',
+                            quantidadeCaprino: '',
+                            ovinosComercializadosAno: '',
+                            caprinosComercializadosAno: ''
+                        },
+                        piscicultura: {
+                            producaoPeixe: ''
+                        },
+                        observacoes: ''
+                    };
+                    this.photoPreview = null;
+                    this.gpsError = null;
+                    this.editIndex = -1;
+                    this.manualEntry = false;
+                    this.gpsLoading = false;
+                    
+                    const formElement = document.querySelector('form');
+                    if (formElement) {
+                        formElement.classList.remove('was-validated');
+                    }
+                },
+                
+                editItem(index) {
+                    try {
+                        this.formData = JSON.parse(JSON.stringify(this.savedData[index]));
+                        this.photoPreview = this.formData.photoBase64;
+                        this.editIndex = index;
+                        
+                        // Muda para a aba de formulário
+                        document.getElementById('form-tab').click();
+                        
+                        // Expande a primeira seção
+                        const firstSection = document.getElementById('collapseProdutor');
+                        if (firstSection) {
+                            firstSection.classList.add('show');
+                        }
+                        
+                        // Scroll para o topo
+                        window.scrollTo(0, 0);
+                    } catch (error) {
+                        console.error('Erro ao editar item:', error);
+                        alert('Erro ao carregar os dados para edição.');
+                    }
+                },
+                
+                deleteItem(index) {
+                    if (confirm('Tem certeza que deseja excluir este produtor? Esta ação não pode ser desfeita.')) {
+                        try {
+                            this.savedData.splice(index, 1);
+                            localStorage.setItem('produtoresData', JSON.stringify(this.savedData));
+                        } catch (error) {
+                            console.error('Erro ao excluir item:', error);
+                            alert('Erro ao excluir o produtor.');
+                        }
+                    }
+                },
+                
+                init() {
+                    try {
+                        const storedData = localStorage.getItem('produtoresData');
+                        if (storedData) {
+                            this.savedData = JSON.parse(storedData);
+                        }
+                        
+                        // Configurar data padrão para hoje
+                        const today = new Date().toISOString().split('T')[0];
+                        this.formData.dataVisita = today;
+                        
+                        console.log('Aplicação inicializada com sucesso');
+                    } catch (error) {
+                        console.error('Erro ao inicializar aplicação:', error);
+                        alert('Erro ao carregar dados salvos. Os dados podem ter sido corrompidos.');
+                        this.savedData = [];
+                    }
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

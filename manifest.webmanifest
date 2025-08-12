@@ -1,0 +1,39 @@
+{
+  "name": "Cadastro de Produtores Rurais",
+  "short_name": "Cadastro Rural",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "description": "Aplicativo para cadastro de produtores rurais com funcionamento offline",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Novo Cadastro",
+      "short_name": "Novo",
+      "description": "Iniciar um novo cadastro",
+      "url": "/?action=new"
+    },
+    {
+      "name": "Ver Cadastros",
+      "short_name": "Listar",
+      "description": "Ver cadastros salvos",
+      "url": "/?action=list"
+    }
+  ]
+}
