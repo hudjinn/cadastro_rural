@@ -196,6 +196,10 @@
             box-shadow: none;
             border-color: rgba(0,0,0,.125);
         }
+        .border-danger {
+            border-width: 2px !important;
+            box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25);
+        }
         .app-icon {
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -363,7 +367,7 @@
                     
                     <div class="accordion" id="formAccordion">
                         <!-- Seção 1: Dados do Produtor -->
-                        <div class="accordion-item">
+                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
                             <h2 class="accordion-header">
                                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProdutor" aria-expanded="true" aria-controls="collapseProdutor">
                                     <i class="bi-person-fill me-2"></i> Dados do Produtor
@@ -485,7 +489,7 @@
                         </div>
                         
                         <!-- Seção 2: Propriedade -->
-                        <div class="accordion-item">
+                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePropriedade" aria-expanded="false" aria-controls="collapsePropriedade">
                                     <i class="bi-house-fill me-2"></i> Propriedade Rural
@@ -628,7 +632,7 @@
                         </div>
                         
                         <!-- Seção 3: Agricultura -->
-                        <div class="accordion-item">
+                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAgricultura" aria-expanded="false" aria-controls="collapseAgricultura">
                                     <i class="bi-flower1 me-2"></i> Agricultura
@@ -738,7 +742,7 @@
                         </div>
                         
                         <!-- Seção 4: Pecuária -->
-                        <div class="accordion-item">
+                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePecuaria" aria-expanded="false" aria-controls="collapsePecuaria">
                                     <i class="bi-egg-fill me-2"></i> Pecuária
@@ -921,7 +925,7 @@
                         </div>
                         
                         <!-- Observações -->
-                        <div class="accordion-item">
+                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseObservacoes" aria-expanded="false" aria-controls="collapseObservacoes">
                                     <i class="bi-chat-left-text-fill me-2"></i> Observações
@@ -1547,7 +1551,13 @@
                         alert('Erro ao carregar dados salvos. Os dados podem ter sido corrompidos.');
                         this.savedData = [];
                     }
-                }
+                },
+                hasErroProdutor() {
+                    return !this.formData.nome || !this.formData.cpf || !this.formData.contato ||
+                           !this.formData.dap_caf || !this.formData.estadoCivil ||
+                           !this.formData.logradouro || !this.formData.bairro || !this.formData.dataVisita ||
+                           !this.formData.participaAssociacao || !this.formData.pessoasFamilia;
+                },
             }));
         });
     </script>
