@@ -168,6 +168,10 @@
             background-size: contain;
         }
         /* Estilos específicos do aplicativo */
+        .bg-erro {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+        }
         .preview-image {
             max-width: 100%;
             max-height: 200px;
@@ -308,6 +312,12 @@
                 font-size: 16px; /* Manter 16px para evitar zoom no iOS */
             }
         }
+
+        body {
+            overscroll-behavior-y: contain;
+            /* Para iOS/Safari, ajuda a evitar pull-to-refresh mas mantém rolagem */
+            touch-action: pan-x pan-y;
+        }
     </style>
 </head>
 <body>
@@ -367,10 +377,11 @@
                     
                     <div class="accordion" id="formAccordion">
                         <!-- Seção 1: Dados do Produtor -->
-                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
+                        <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProdutor" aria-expanded="true" aria-controls="collapseProdutor">
+                                <button class="accordion-button" :class="hasErroSecao('produtor') ? 'bg-erro text-white' : ''" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProdutor" aria-expanded="true" aria-controls="collapseProdutor">
                                     <i class="bi-person-fill me-2"></i> Dados do Produtor
+                                    <i class="bi-exclamation-triangle-fill text-danger ms-2" x-show="hasErroSecao('produtor')"></i>
                                 </button>
                             </h2>
                             <div id="collapseProdutor" class="accordion-collapse collapse show" data-bs-parent="#formAccordion">
@@ -378,9 +389,10 @@
                                     <!-- Conteúdo da seção Produtor -->
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <div class="form-floating">
+                                            <div class="form-floating position-relative">
                                                 <input type="text" class="form-control" id="nome" placeholder="Nome" x-model="formData.nome" required>
                                                 <label for="nome">Nome Completo</label>
+                                                <i class="bi-exclamation-triangle-fill text-danger position-absolute end-0 top-50 translate-middle-y me-2" x-show="!formData.nome" style="right:2rem;"></i>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -489,10 +501,11 @@
                         </div>
                         
                         <!-- Seção 2: Propriedade -->
-                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
+                        <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePropriedade" aria-expanded="false" aria-controls="collapsePropriedade">
+                                <button class="accordion-button collapsed" :class="hasErroSecao('propriedade') ? 'bg-erro text-danger' : ''" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePropriedade" aria-expanded="false" aria-controls="collapsePropriedade">
                                     <i class="bi-house-fill me-2"></i> Propriedade Rural
+                                    <i class="bi-exclamation-triangle-fill text-danger ms-2" x-show="hasErroSecao('propriedade')"></i>
                                 </button>
                             </h2>
                             <div id="collapsePropriedade" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
@@ -632,7 +645,7 @@
                         </div>
                         
                         <!-- Seção 3: Agricultura -->
-                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
+                        <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAgricultura" aria-expanded="false" aria-controls="collapseAgricultura">
                                     <i class="bi-flower1 me-2"></i> Agricultura
@@ -742,7 +755,7 @@
                         </div>
                         
                         <!-- Seção 4: Pecuária -->
-                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
+                        <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePecuaria" aria-expanded="false" aria-controls="collapsePecuaria">
                                     <i class="bi-egg-fill me-2"></i> Pecuária
@@ -925,7 +938,7 @@
                         </div>
                         
                         <!-- Observações -->
-                        <div class="accordion-item" :class="hasErroProdutor() && $el.querySelector('.was-validated') ? 'border border-danger' : ''">
+                        <div class="accordion-item">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseObservacoes" aria-expanded="false" aria-controls="collapseObservacoes">
                                     <i class="bi-chat-left-text-fill me-2"></i> Observações
@@ -1108,6 +1121,7 @@
                 editIndex: -1,
                 gpsLoading: false,
                 manualEntry: false,
+                formTocado: false,
                 
                 getGPSErrorMessage(error) {
                     switch(error.code) {
@@ -1376,6 +1390,7 @@
                 },
                 
                 saveData() {
+                    this.formTocado = true;
                     const formElement = document.querySelector('form');
                     if (!formElement.checkValidity()) {
                         formElement.classList.add('was-validated');
@@ -1479,6 +1494,7 @@
                     this.editIndex = -1;
                     this.manualEntry = false;
                     this.gpsLoading = false;
+                    this.formTocado = false;
                     
                     const formElement = document.querySelector('form');
                     if (formElement) {
@@ -1521,6 +1537,24 @@
                     }
                 },
                 
+                hasErroSecao(secao) {
+                    if (!this.formTocado) return false;
+                    const requireds = {
+                        produtor: [
+                            'nome', 'cpf', 'contato', 'dap_caf', 'estadoCivil', 'logradouro', 'bairro', 'dataVisita', 'participaAssociacao', 'pessoasFamilia'
+                        ],
+                        propriedade: [
+                            'situacaoJuridica', 'areaTotal', 'recursosHidricos', 'tipoEnergia', 'interesseFeira'
+                        ]
+                    };
+                    if (!requireds[secao]) return false;
+                    for (const campo of requireds[secao]) {
+                        if (!this.formData[campo]) return true;
+                    }
+                    if (secao === 'produtor' && this.formData.participaAssociacao === 'Sim' && !this.formData.qualAssociacao) return true;
+                    return false;
+                },
+                
                 init() {
                     try {
                         const storedData = localStorage.getItem('produtoresData');
@@ -1551,12 +1585,6 @@
                         alert('Erro ao carregar dados salvos. Os dados podem ter sido corrompidos.');
                         this.savedData = [];
                     }
-                },
-                hasErroProdutor() {
-                    return !this.formData.nome || !this.formData.cpf || !this.formData.contato ||
-                           !this.formData.dap_caf || !this.formData.estadoCivil ||
-                           !this.formData.logradouro || !this.formData.bairro || !this.formData.dataVisita ||
-                           !this.formData.participaAssociacao || !this.formData.pessoasFamilia;
                 },
             }));
         });
