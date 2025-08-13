@@ -1,6 +1,6 @@
 // sw.js
 const VERSION = 'v1.0.1';
-const CACHE_NAME = `cadastro-rural-${VERSION}`;
+const CACHE_NAME = `cadastro-produtor-rural-${VERSION}`;
 const BASE = self.location.pathname.replace(/\/[^\/]*$/, '');
 
 // Use caminhos RELATIVOS ao escopo do SW e normalize para URL absoluta com base no escopo

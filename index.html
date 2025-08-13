@@ -1172,7 +1172,7 @@
                         },
                         {
                             enableHighAccuracy: true,
-                            timeout: 180000, // Aumentado para 3 minutos
+                            timeout: 900000, // Aumentado para 15 minutos
                             maximumAge: 0
                         }
                     );
@@ -1527,6 +1527,19 @@
                         // Configurar data padrão para hoje
                         const today = new Date().toISOString().split('T')[0];
                         this.formData.dataVisita = today;
+                        
+                        // Obter localização inicial se suportado
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(
+                                (pos) => {
+                                    this.latitude = pos.coords.latitude;
+                                    this.longitude = pos.coords.longitude;
+                                },
+                                (err) => {
+                                    console.warn('Erro ao obter localização:', err);
+                                }
+                            );
+                        }
                         
                         console.log('Aplicação inicializada com sucesso');
                     } catch (error) {
