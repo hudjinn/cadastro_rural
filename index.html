@@ -662,7 +662,8 @@
                                                         <tr>
                                                             <th>Produto</th>
                                                             <th>Área Plantada/Pés</th>
-                                                            <th>Produção</th>
+                                                            <th>Unidade</th>
+                                                            <th>Produção (kg)</th>
                                                             <th>Ação</th>
                                                         </tr>
                                                     </thead>
@@ -691,14 +692,21 @@
                                                                         <option value="Palma forrageira">Palma forrageira</option>
                                                                         <option value="Sorgo forrageiro">Sorgo forrageiro</option>
                                                                         <option value="Tomate irrigado">Tomate irrigado</option>
-
                                                                     </select>
                                                                 </td>
                                                                 <td>
                                                                     <input type="number" step="0.01" class="form-control form-control-sm" x-model="cultura.areaPlantada" min="0" required placeholder="Área/Quantidade">
                                                                 </td>
                                                                 <td>
-                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="cultura.producao" min="0" required placeholder="Produção">
+                                                                    <select class="form-select form-select-sm" x-model="cultura.unidade" required>
+                                                                        <option value="" selected disabled>Selecione</option>
+                                                                        <option value="ha">ha</option>
+                                                                        <option value="m²">m²</option>
+                                                                        <option value="pés">pés</option>
+                                                                    </select>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="cultura.producao" min="0" required placeholder="Produção (kg)">
                                                                 </td>
                                                                 <td class="text-center">
                                                                     <button type="button" class="btn btn-sm btn-outline-danger" @click="removerCultura(index)">
@@ -708,17 +716,69 @@
                                                             </tr>
                                                         </template>
                                                         <tr x-show="formData.culturas.length === 0">
-                                                            <td colspan="4" class="text-center py-3 text-muted">
+                                                            <td colspan="5" class="text-center py-3 text-muted">
                                                                 Nenhuma cultura cadastrada. Clique no botão abaixo para adicionar.
                                                             </td>
                                                         </tr>
                                                     </tbody>
                                                     <tfoot>
                                                         <tr>
-                                                            <td colspan="4">
+                                                            <td colspan="5">
                                                                 <button type="button" class="btn btn-sm btn-outline-success w-100" @click="adicionarCultura">
                                                                     <i class="bi-plus-lg me-1"></i>
                                                                     Adicionar Cultura
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-12">
+                                            <hr class="my-3">
+                                            <h6 class="fw-bold mb-3">Preparação do Solo</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-hover">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Área Cultivada (ha)</th>
+                                                            <th>Cultura Plantada</th>
+                                                            <th>Área Plantada (ha)</th>
+                                                            <th>Ação</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <template x-for="(preparacao, index) in formData.preparacaoSolo" :key="index">
+                                                            <tr>
+                                                                <td>
+                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="preparacao.areaCultivada" min="0" required placeholder="Área Cultivada">
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" class="form-control form-control-sm" x-model="preparacao.culturaPlantada" required placeholder="Cultura Plantada">
+                                                                </td>
+                                                                <td>
+                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="preparacao.areaPlantada" min="0" required placeholder="Área Plantada">
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <button type="button" class="btn btn-sm btn-outline-danger" @click="removerpreparacaoSolo(index)">
+                                                                        <i class="bi-trash"></i>
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </template>
+                                                        <tr x-show="formData.preparacaoSolo.length === 0">
+                                                            <td colspan="4" class="text-center py-3 text-muted">
+                                                                Nenhum preparacao de solo cadastrado. Clique no botão abaixo para adicionar.
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td colspan="4">
+                                                                <button type="button" class="btn btn-sm btn-outline-success w-100" @click="adicionarpreparacaoSolo">
+                                                                    <i class="bi-plus-lg me-1"></i>
+                                                                    Adicionar preparacao de Solo
                                                                 </button>
                                                             </td>
                                                         </tr>
@@ -925,11 +985,17 @@
                                         <div class="col-12">
                                             <hr class="my-2">
                                             <h6 class="fw-bold mb-3">Piscicultura</h6>
-                                            <div class="col-md-6">
-                                                <div class="form-floating">
-                                                    <input type="number" class="form-control" id="producaoPeixe" x-model="formData.piscicultura.producaoPeixe" min="0">
-                                                    <label for="producaoPeixe">Produção de Peixe (kg)</label>
-                                                </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" step="0.01" class="form-control" id="areaProducaoPeixe" x-model="formData.piscicultura.areaProducao" min="0">
+                                                <label for="areaProducaoPeixe">Área de Produção (ha)</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="number" class="form-control" id="producaoPeixe" x-model="formData.piscicultura.producaoPeixe" min="0">
+                                                <label for="producaoPeixe">Produção de Peixe (kg)</label>
                                             </div>
                                         </div>
                                     </div>
@@ -1075,6 +1141,7 @@
                     gpsStatus: 'Aguardando localização...',
                     photoBase64: '',
                     culturas: [],
+                    preparacaoSolo: [],
                     reservaAlimentar: {
                         areaProducaoSilagem: '',
                         especieForrageira: '',
@@ -1111,6 +1178,7 @@
                         caprinosComercializadosAno: ''
                     },
                     piscicultura: {
+                        areaProducao: '',
                         producaoPeixe: ''
                     },
                     observacoes: ''
@@ -1226,7 +1294,7 @@
                             "Aves - Frango Abate,Aves - Comercializados/Ano,Aves - Preco Medio/Kg," +
                             "Apicultura - Qtde Colmeias,Apicultura - Colmeias Povoadas,Apicultura - Producao Anual (kg)," +
                             "Ovinos - Quantidade,Caprinos - Quantidade,Ovinos - Comercializados/Ano,Caprinos - Comercializados/Ano," +
-                            "Piscicultura - Producao Peixe (kg)," +
+                            "Piscicultura - Area Producao (ha),Piscicultura - Producao Peixe (kg)," +
                             "Observacoes,Nome Arquivo Foto\n";
                         
                         // Adicionar dados completos dos produtores
@@ -1294,6 +1362,7 @@
                                 `"${(produtor.ovinocaprino && produtor.ovinocaprino.quantidadeCaprino) || ''}"`,
                                 `"${(produtor.ovinocaprino && produtor.ovinocaprino.ovinosComercializadosAno) || ''}"`,
                                 `"${(produtor.ovinocaprino && produtor.ovinocaprino.caprinosComercializadosAno) || ''}"`,
+                                `"${(produtor.piscicultura && produtor.piscicultura.areaProducao) || ''}"`,
                                 `"${(produtor.piscicultura && produtor.piscicultura.producaoPeixe) || ''}"`,
                                 `"${(produtor.observacoes || '').replace(/"/g, '""')}"`, // Escapa aspas duplas dentro do texto
                                 `"${nomeArquivo}"` // Nome do arquivo da foto
@@ -1304,7 +1373,7 @@
                         zip.file("produtores_rurais.csv", csvContent);
                         
                         // Criar culturas CSV
-                        let culturasCsvContent = "Produtor,Cultura,Area Plantada/Pes,Producao\n";
+                        let culturasCsvContent = "Produtor,Cultura,Area Plantada/Pes,Unidade,Producao (kg)\n";
                         let temCulturas = false;
                         
                         this.savedData.forEach(produtor => {
@@ -1315,7 +1384,26 @@
                                         `"${produtor.nome || ''}"`,
                                         `"${cultura.produto || ''}"`,
                                         `"${cultura.areaPlantada || ''}"`,
+                                        `"${cultura.unidade || ''}"`,
                                         `"${cultura.producao || ''}"`
+                                    ].join(',') + '\n';
+                                });
+                            }
+                        });
+                        
+                        // Criar preparacao do solo CSV
+                        let preparacaoSoloCsvContent = "Produtor,Area Cultivada (ha),Cultura Plantada,Area Plantada (ha)\n";
+                        let tempreparacaoSolo = false;
+                        
+                        this.savedData.forEach(produtor => {
+                            if (produtor.preparacaoSolo && produtor.preparacaoSolo.length > 0) {
+                                tempreparacaoSolo = true;
+                                produtor.preparacaoSolo.forEach(preparacao => {
+                                    preparacaoSoloCsvContent += [
+                                        `"${produtor.nome || ''}"`,
+                                        `"${preparacao.areaCultivada || ''}"`,
+                                        `"${preparacao.culturaPlantada || ''}"`,
+                                        `"${preparacao.areaPlantada || ''}"`
                                     ].join(',') + '\n';
                                 });
                             }
@@ -1326,13 +1414,19 @@
                             zip.file("culturas_agricolas.csv", culturasCsvContent);
                         }
                         
+                        // Adicionar CSV de preparacao do solo ao ZIP se houver dados
+                        if (tempreparacaoSolo) {
+                            zip.file("preparacao_solo.csv", preparacaoSoloCsvContent);
+                        }
+                        
                         // Adicionar um README.txt explicativo
                         const readme = "Exportacao de dados do Sistema de Cadastro de Produtores Rurais\n" +
                                        "==========================================================\n\n" +
                                        "Este arquivo ZIP contem:\n" +
                                        "1. produtores_rurais.csv - Dados completos de todos os produtores cadastrados\n" +
                                        (temCulturas ? "2. culturas_agricolas.csv - Detalhes das culturas agricolas por produtor\n" : "") +
-                                       "3. /fotos/ - Diretorio contendo as fotos das propriedades (quando disponiveis)\n\n" +
+                                       (tempreparacaoSolo ? "3. preparacao_solo.csv - Detalhes da preparacao do solo por produtor\n" : "") +
+                                       `${(temCulturas && tempreparacaoSolo) ? "4" : (temCulturas || tempreparacaoSolo) ? "3" : "2"}. /fotos/ - Diretorio contendo as fotos das propriedades (quando disponiveis)\n\n` +
                                        "Data da exportacao: " + new Date().toLocaleString('pt-BR') + "\n";
                         
                         zip.file("LEIA-ME.txt", readme);
@@ -1382,11 +1476,19 @@
                 },
                 
                 adicionarCultura() {
-                    this.formData.culturas.push({ produto: '', areaPlantada: '', producao: '' });
+                    this.formData.culturas.push({ produto: '', areaPlantada: '', unidade: '', producao: '' });
                 },
                 
                 removerCultura(index) {
                     this.formData.culturas.splice(index, 1);
+                },
+                
+                adicionarpreparacaoSolo() {
+                    this.formData.preparacaoSolo.push({ areaCultivada: '', culturaPlantada: '', areaPlantada: '' });
+                },
+                
+                removerpreparacaoSolo(index) {
+                    this.formData.preparacaoSolo.splice(index, 1);
                 },
                 
                 saveData() {
