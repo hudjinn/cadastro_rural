@@ -350,16 +350,23 @@
 
     <div class="container py-4" x-data="formApp" x-show="true" x-transition>
         <div class="app-title">
-            <div class="d-flex align-items-center mb-4">
-                <img src="./static/icon.png" alt="Ícone do aplicativo" class="app-icon" style="width: 50px; height: 50px; margin-right: 16px;">
-                <h1 class="mb-0">Cadastro do Produtor Rural</h1>
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex align-items-center">
+                    <img src="./static/icon.png" alt="Ícone do aplicativo" class="app-icon" style="width: 50px; height: 50px; margin-right: 16px;">
+                    <h1 class="mb-0">Cadastro do Produtor Rural</h1>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#tecnicoModal">
+                        <i class="bi-person-badge me-1"></i> Identificar Técnico
+                    </button>
+                </div>
             </div>
         </div>
         
         <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="form-tab" data-bs-toggle="tab" data-bs-target="#form-tab-pane" type="button" role="tab" aria-selected="true">
-                    <i class="bi-person-plus me-1"></i> Formulário
+                    <i class="bi-person-plus me-1"></i> Novo Formulário
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -373,7 +380,24 @@
             <!-- Aba de Formulário -->
 
             <div class="tab-pane fade show active" id="form-tab-pane" role="tabpanel" aria-labelledby="form-tab" tabindex="0">
-                <form @submit.prevent="saveData" class="needs-validation" novalidate>
+                
+                <!-- Alerta para identificação do técnico -->
+                <div class="alert alert-warning mb-4" x-show="!tecnicoData.nome || !tecnicoData.cpf">
+                    <div class="d-flex align-items-center">
+                        <i class="bi-exclamation-triangle-fill me-2 fs-4"></i>
+                        <div>
+                            <h6 class="alert-heading mb-1">Identificação do Técnico Necessária</h6>
+                            <p class="mb-2">Antes de preencher um novo formulário, é necessário identificar o técnico responsável.</p>
+                            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#tecnicoModal">
+                                <i class="bi-person-badge me-1"></i> Identificar Técnico
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formulário principal -->
+                <div x-show="tecnicoData.nome && tecnicoData.cpf" x-transition>
+                    <form @submit.prevent="validarCadastro" class="needs-validation" novalidate>
                     
                     <div class="accordion" id="formAccordion">
                         <!-- Seção 1: Dados do Produtor -->
@@ -523,6 +547,18 @@
                                                 <label for="situacaoJuridica">Situação Jurídica</label>
                                             </div>
                                         </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="nomePropriedade" x-model="formData.nomePropriedade" required>
+                                                <label for="nomePropriedade">Nome da Propriedade</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="nomeLocalidade" x-model="formData.nomeLocalidade" required>
+                                                <label for="nomeLocalidade">Nome da Localidade</label>
+                                            </div>
+                                        </div>
                                         
                                         <div class="col-12">
                                             <hr class="my-2">
@@ -564,9 +600,43 @@
                                             <h6 class="fw-bold mb-3">Recursos</h6>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <input type="text" class="form-control" id="recursosHidricos" x-model="formData.recursosHidricos" required>
-                                                <label for="recursosHidricos">Recursos Hídricos</label>
+                                            <label class="form-label">Recursos Hídricos Existentes</label>
+                                            <div class="border rounded p-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="acude" x-model="formData.recursosHidricos.acude">
+                                                    <label class="form-check-label" for="acude">Açude</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="riacho" x-model="formData.recursosHidricos.riacho">
+                                                    <label class="form-check-label" for="riacho">Riacho</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="poco" x-model="formData.recursosHidricos.poco">
+                                                    <label class="form-check-label" for="poco">Poço</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="cacimbao" x-model="formData.recursosHidricos.cacimbao">
+                                                    <label class="form-check-label" for="cacimbao">Cacimbão</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="lagoa" x-model="formData.recursosHidricos.lagoa">
+                                                    <label class="form-check-label" for="lagoa">Lagoa</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="nascente" x-model="formData.recursosHidricos.nascente">
+                                                    <label class="form-check-label" for="nascente">Nascente/ Olho D'água</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="cisterna" x-model="formData.recursosHidricos.cisterna">
+                                                    <label class="form-check-label" for="cisterna">Cisterna de produção (calçadão/enxurrada)</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="outrosRecursos" x-model="formData.recursosHidricos.outros">
+                                                    <label class="form-check-label" for="outrosRecursos">Outros</label>
+                                                </div>
+                                                <div class="mt-2" x-show="formData.recursosHidricos.outros">
+                                                    <input type="text" class="form-control form-control-sm" placeholder="Especifique outros recursos" x-model="formData.recursosHidricos.outrosTexto">
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -653,6 +723,33 @@
                             </h2>
                             <div id="collapseAgricultura" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
                                 <div class="accordion-body">
+                                    <div class="col-12">
+                                            <h6 class="fw-bold mb-3">Preparação do Solo</h6>
+                                            <div class="border rounded p-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="analiseSolo" x-model="formData.preparacaoSolo.analiseSolo">
+                                                    <label class="form-check-label" for="analiseSolo">Análise de solo</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="correcao" x-model="formData.preparacaoSolo.correcao">
+                                                    <label class="form-check-label" for="correcao">Correção</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="calagem" x-model="formData.preparacaoSolo.calagem">
+                                                    <label class="form-check-label" for="calagem">Calagem</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="garagem" x-model="formData.preparacaoSolo.garagem">
+                                                    <label class="form-check-label" for="garagem">Garagem com Trator</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="adubacao" x-model="formData.preparacaoSolo.adubacao">
+                                                    <label class="form-check-label" for="adubacao">Adubação</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    <hr class="my-3">
+
                                     <div class="row g-3">
                                         <div class="col-12">
                                             <h6 class="fw-bold mb-3">Culturas Anuais e Fruticultura</h6>
@@ -727,58 +824,6 @@
                                                                 <button type="button" class="btn btn-sm btn-outline-success w-100" @click="adicionarCultura">
                                                                     <i class="bi-plus-lg me-1"></i>
                                                                     Adicionar Cultura
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="col-12">
-                                            <hr class="my-3">
-                                            <h6 class="fw-bold mb-3">Preparação do Solo</h6>
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered table-hover">
-                                                    <thead class="table-light">
-                                                        <tr>
-                                                            <th>Área Cultivada (ha)</th>
-                                                            <th>Cultura Plantada</th>
-                                                            <th>Área Plantada (ha)</th>
-                                                            <th>Ação</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <template x-for="(preparacao, index) in formData.preparacaoSolo" :key="index">
-                                                            <tr>
-                                                                <td>
-                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="preparacao.areaCultivada" min="0" required placeholder="Área Cultivada">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="text" class="form-control form-control-sm" x-model="preparacao.culturaPlantada" required placeholder="Cultura Plantada">
-                                                                </td>
-                                                                <td>
-                                                                    <input type="number" step="0.01" class="form-control form-control-sm" x-model="preparacao.areaPlantada" min="0" required placeholder="Área Plantada">
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <button type="button" class="btn btn-sm btn-outline-danger" @click="removerpreparacaoSolo(index)">
-                                                                        <i class="bi-trash"></i>
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        </template>
-                                                        <tr x-show="formData.preparacaoSolo.length === 0">
-                                                            <td colspan="4" class="text-center py-3 text-muted">
-                                                                Nenhum preparacao de solo cadastrado. Clique no botão abaixo para adicionar.
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <td colspan="4">
-                                                                <button type="button" class="btn btn-sm btn-outline-success w-100" @click="adicionarpreparacaoSolo">
-                                                                    <i class="bi-plus-lg me-1"></i>
-                                                                    Adicionar preparacao de Solo
                                                                 </button>
                                                             </td>
                                                         </tr>
@@ -1003,34 +1048,160 @@
                             </div>
                         </div>
                         
-                        <!-- Observações -->
+                        <!-- Relatório de ATER (Assistência Técnica e Extensão Rural) -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseObservacoes" aria-expanded="false" aria-controls="collapseObservacoes">
-                                    <i class="bi-chat-left-text-fill me-2"></i> Observações
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRelatorioATER" aria-expanded="false" aria-controls="collapseRelatorioATER">
+                                    <i class="bi-clipboard-data me-2"></i> Relatório de ATER
                                 </button>
                             </h2>
-                            <div id="collapseObservacoes" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                            <div id="collapseRelatorioATER" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
                                 <div class="accordion-body">
-                                    <div class="form-floating">
-                                        <textarea class="form-control" id="observacoes" style="height: 120px" x-model="formData.observacoes" placeholder="Observações"></textarea>
-                                        <label for="observacoes">Observações</label>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="form-floating">
+                                                <textarea class="form-control" id="assuntosAbordados" style="height: 120px" x-model="formData.relatorioATER.assuntosAbordados" placeholder="Descreva os assuntos abordados durante o evento de assistência técnica" required></textarea>
+                                                <label for="assuntosAbordados">Assuntos Abordados no Evento <span class="text-danger">*</span></label>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-floating">
+                                                <textarea class="form-control" id="recomendacoesTecnicas" style="height: 120px" x-model="formData.relatorioATER.recomendacoesTecnicas" placeholder="Descreva as recomendações técnicas fornecidas ao produtor" required></textarea>
+                                                <label for="recomendacoesTecnicas">Recomendações Técnicas <span class="text-danger">*</span></label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Botões de ação -->
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <!-- Seção de Validação do Produtor (aparece após validar formulário) -->
+                    <div class="card mt-4" x-show="mostrarValidacao" x-transition>
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi-check-circle me-2"></i>
+                                Validação do Cadastro pelo Produtor Rural
+                            </h5>
+                            <small>Revise os dados preenchidos e confirme com sua assinatura digital</small>
+                        </div>
+                        <div class="card-body">
+                            <!-- Informações do Técnico -->
+                            <div class="alert alert-info" x-show="tecnicoData.nome">
+                                <h6 class="alert-heading">
+                                    <i class="bi-person-badge me-2"></i>Técnico Responsável
+                                </h6>
+                                <p class="mb-1"><strong>Nome:</strong> <span x-text="tecnicoData.nome"></span></p>
+                                <p class="mb-0"><strong>CPF:</strong> <span x-text="tecnicoData.cpf"></span></p>
+                            </div>
+                            
+                            <!-- Dados do Produtor -->
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <h6 class="fw-bold text-primary">
+                                        <i class="bi-person-fill me-2"></i>Dados do Produtor
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Nome Completo:</strong> <span x-text="formData.nome || '-'"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>CPF:</strong> <span x-text="formData.cpf || '-'"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Contato:</strong> <span x-text="formData.contato || '-'"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Estado Civil:</strong> <span x-text="formData.estadoCivil || '-'"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Dados da Propriedade -->
+                            <div class="row g-3 mt-3">
+                                <div class="col-12">
+                                    <h6 class="fw-bold text-primary">
+                                        <i class="bi-house-fill me-2"></i>Propriedade Rural
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Nome da Propriedade:</strong> <span x-text="formData.nomePropriedade || '-'"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Localidade:</strong> <span x-text="formData.nomeLocalidade || '-'"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Área Total:</strong> <span x-text="formData.areaTotal || '-'"></span> ha
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Situação Jurídica:</strong> <span x-text="formData.situacaoJuridica || '-'"></span>
+                                </div>
+                            </div>
+                            
+                            <!-- Foto da Propriedade -->
+                            <div class="row g-3 mt-3" x-show="formData.photoBase64">
+                                <div class="col-12">
+                                    <h6 class="fw-bold text-primary">
+                                        <i class="bi-camera-fill me-2"></i>Foto da Propriedade
+                                    </h6>
+                                    <img :src="formData.photoBase64" class="img-fluid rounded shadow" style="max-height: 300px;" alt="Foto da Propriedade">
+                                </div>
+                            </div>
+                            
+                            <!-- Validação e Assinatura -->
+                            <div class="row g-3 mt-4">
+                                <div class="col-12">
+                                    <div class="border rounded p-3 bg-light">
+                                        <h6 class="fw-bold text-success mb-3">
+                                            <i class="bi-pen-fill me-2"></i>Confirmação e Assinatura Digital
+                                        </h6>
+                                        
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="confirmaDados" x-model="validacaoProdutor.confirmaDados">
+                                            <label class="form-check-label" for="confirmaDados">
+                                                <strong>Confirmo que todos os dados apresentados estão corretos e autorizo o cadastro</strong>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Assinatura Digital do Produtor Rural</label>
+                                            <canvas id="assinaturaProdutorCanvas" width="500" height="200" class="border rounded bg-white" style="width: 100%; height: 200px; cursor: crosshair;"></canvas>
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limparAssinatureProdutor()">
+                                                    <i class="bi-arrow-clockwise"></i> Limpar Assinatura
+                                                </button>
+                                                <small class="text-muted ms-3">
+                                                    <i class="bi-info-circle"></i> 
+                                                    Assine no espaço acima usando o mouse ou toque na tela
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botões de Ação da Validação -->
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <button type="button" class="btn btn-outline-secondary" @click="cancelarValidacao">
+                                    <i class="bi-x-circle me-1"></i> Cancelar
+                                </button>
+                                <button type="button" class="btn btn-success" @click="finalizarCadastro" :disabled="!validacaoProdutor.confirmaDados || !validacaoProdutor.assinatura">
+                                    <i class="bi-check-circle me-1"></i> Finalizar Cadastro
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botões de ação do formulário -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4" x-show="!mostrarValidacao">
                         <button type="button" class="btn btn-outline-secondary" @click="resetForm">
                             <i class="bi-arrow-clockwise me-1"></i> Limpar Formulário
                         </button>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi-save me-1"></i> Salvar Cadastro
+                            <i class="bi-eye me-1"></i> Validar Cadastro
                         </button>
                     </div>
                 </form>
+                </div> <!-- Fim do formulário condicional -->
             </div>
             
             <!-- Aba de Dados Salvos -->
@@ -1094,6 +1265,47 @@
         </div>
     </div>
 
+    <!-- Modal para Identificação do Técnico -->
+    <div class="modal fade" id="tecnicoModal" tabindex="-1" aria-labelledby="tecnicoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tecnicoModalLabel">Identificação do Técnico Responsável</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="tecnicoForm">
+                        <div class="mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="tecnicoNome" x-model="tecnicoData.nome" required>
+                                <label for="tecnicoNome">Nome Completo</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="tecnicoCpf" x-model="tecnicoData.cpf" required>
+                                <label for="tecnicoCpf">CPF</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="tecnicoAssinatura" class="form-label">Assinatura Digital</label>
+                            <canvas id="assinaturaCanvas" width="400" height="150" class="border rounded" style="width: 100%; height: 150px; cursor: crosshair;"></canvas>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limparAssinatura()">
+                                    <i class="bi-arrow-clockwise"></i> Limpar Assinatura
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @click="salvarTecnico">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts locais (SEM internet) -->
     <script src="./static/js/jszip.min.js"></script>
     <script src="./static/js/bootstrap.bundle.min.js"></script>
@@ -1127,12 +1339,24 @@
                     qualAssociacao: '',
                     pessoasFamilia: '',
                     situacaoJuridica: '',
+                    nomePropriedade: '',
+                    nomeLocalidade: '',
                     areaTotal: '',
                     areaCapineiraSequeiro: '',
                     areaPastagemNativa: '',
                     areaCultivoSequeiro: '',
                     areaCapimCana: '',
-                    recursosHidricos: '',
+                    recursosHidricos: {
+                        acude: false,
+                        riacho: false,
+                        poco: false,
+                        cacimbao: false,
+                        lagoa: false,
+                        nascente: false,
+                        cisterna: false,
+                        outros: false,
+                        outrosTexto: ''
+                    },
                     tipoEnergia: '',
                     interesseFeira: '',
                     latitude: '',
@@ -1141,7 +1365,13 @@
                     gpsStatus: 'Aguardando localização...',
                     photoBase64: '',
                     culturas: [],
-                    preparacaoSolo: [],
+                    preparacaoSolo: {
+                        analiseSolo: false,
+                        correcao: false,
+                        calagem: false,
+                        garagem: false,
+                        adubacao: false
+                    },
                     reservaAlimentar: {
                         areaProducaoSilagem: '',
                         especieForrageira: '',
@@ -1181,7 +1411,19 @@
                         areaProducao: '',
                         producaoPeixe: ''
                     },
-                    observacoes: ''
+                    relatorioATER: {
+                        assuntosAbordados: '',
+                        recomendacoesTecnicas: ''
+                    }
+                },
+                tecnicoData: {
+                    nome: '',
+                    cpf: '',
+                    assinatura: ''
+                },
+                validacaoProdutor: {
+                    confirmaDados: false,
+                    assinatura: ''
                 },
                 savedData: [],
                 photoPreview: null,
@@ -1190,6 +1432,7 @@
                 gpsLoading: false,
                 manualEntry: false,
                 formTocado: false,
+                mostrarValidacao: false,
                 
                 getGPSErrorMessage(error) {
                     switch(error.code) {
@@ -1284,9 +1527,12 @@
                         
                         // Cabeçalho do CSV
                         let csvContent = "Nome,CPF,Apelido,Contato,DAP/CAF,Estado Civil,Logradouro,Bairro,Distrito,Data Visita," +
-                            "Participa Associacao,Qual Associacao,Pessoas Familia,Situacao Juridica,Area Total (ha)," +
+                            "Participa Associacao,Qual Associacao,Pessoas Familia,Situacao Juridica,Nome Propriedade,Nome Localidade,Area Total (ha)," +
                             "Area Capineira Sequeiro (ha),Area Pastagem Nativa (ha),Area Cultivo Sequeiro (ha),Area Capim/Cana (ha)," +
-                            "Recursos Hidricos,Tipo Energia,Interesse Feira,Latitude,Longitude,Acuracia GPS (m)," +
+                            "Recursos Hidricos - Acude,Recursos Hidricos - Riacho,Recursos Hidricos - Poco,Recursos Hidricos - Cacimbao," +
+                            "Recursos Hidricos - Lagoa,Recursos Hidricos - Nascente,Recursos Hidricos - Cisterna,Recursos Hidricos - Outros," +
+                            "Recursos Hidricos - Outros Texto,Tipo Energia,Interesse Feira,Latitude,Longitude,Acuracia GPS (m)," +
+                            "Preparacao Solo - Analise,Preparacao Solo - Correcao,Preparacao Solo - Calagem,Preparacao Solo - Garagem,Preparacao Solo - Adubacao," +
                             "Reserva Alimentar - Area Silagem (ha),Reserva Alimentar - Especie,Reserva Alimentar - Qtde (ton)," +
                             "Bovinos - Rebanho,Bovinos - Matrizes,Bovinos - Producao Leite/Dia,Bovinos - Producao de Queijo," +
                             "Suinos - Rebanho,Suinos - Matrizes,Suinos - Comercializados/Ano," + 
@@ -1295,7 +1541,8 @@
                             "Apicultura - Qtde Colmeias,Apicultura - Colmeias Povoadas,Apicultura - Producao Anual (kg)," +
                             "Ovinos - Quantidade,Caprinos - Quantidade,Ovinos - Comercializados/Ano,Caprinos - Comercializados/Ano," +
                             "Piscicultura - Area Producao (ha),Piscicultura - Producao Peixe (kg)," +
-                            "Observacoes,Nome Arquivo Foto\n";
+                            "ATER - Assuntos Abordados,ATER - Recomendacoes Tecnicas," +
+                            "Tecnico - Nome,Tecnico - CPF,Produtor Confirmou Dados,Nome Arquivo Foto\n";
                         
                         // Adicionar dados completos dos produtores
                         this.savedData.forEach((produtor, idx) => {
@@ -1328,17 +1575,32 @@
                                 `"${produtor.qualAssociacao || ''}"`,
                                 `"${produtor.pessoasFamilia || ''}"`,
                                 `"${produtor.situacaoJuridica || ''}"`,
+                                `"${produtor.nomePropriedade || ''}"`,
+                                `"${produtor.nomeLocalidade || ''}"`,
                                 `"${produtor.areaTotal || ''}"`,
                                 `"${produtor.areaCapineiraSequeiro || ''}"`,
                                 `"${produtor.areaPastagemNativa || ''}"`,
                                 `"${produtor.areaCultivoSequeiro || ''}"`,
                                 `"${produtor.areaCapimCana || ''}"`,
-                                `"${produtor.recursosHidricos || ''}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.acude) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.riacho) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.poco) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.cacimbao) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.lagoa) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.nascente) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.cisterna) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.outros) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.recursosHidricos && produtor.recursosHidricos.outrosTexto) || ''}"`,
                                 `"${produtor.tipoEnergia || ''}"`,
                                 `"${produtor.interesseFeira || ''}"`,
                                 `"${produtor.latitude || ''}"`,
                                 `"${produtor.longitude || ''}"`,
                                 `"${produtor.acuraciaGPS || ''}"`,
+                                `"${(produtor.preparacaoSolo && produtor.preparacaoSolo.analiseSolo) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.preparacaoSolo && produtor.preparacaoSolo.correcao) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.preparacaoSolo && produtor.preparacaoSolo.calagem) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.preparacaoSolo && produtor.preparacaoSolo.garagem) ? 'Sim' : 'Não'}"`,
+                                `"${(produtor.preparacaoSolo && produtor.preparacaoSolo.adubacao) ? 'Sim' : 'Não'}"`,
                                 `"${(produtor.reservaAlimentar && produtor.reservaAlimentar.areaProducaoSilagem) || ''}"`,
                                 `"${(produtor.reservaAlimentar && produtor.reservaAlimentar.especieForrageira) || ''}"`,
                                 `"${(produtor.reservaAlimentar && produtor.reservaAlimentar.quantidadeToneladas) || ''}"`,
@@ -1364,7 +1626,11 @@
                                 `"${(produtor.ovinocaprino && produtor.ovinocaprino.caprinosComercializadosAno) || ''}"`,
                                 `"${(produtor.piscicultura && produtor.piscicultura.areaProducao) || ''}"`,
                                 `"${(produtor.piscicultura && produtor.piscicultura.producaoPeixe) || ''}"`,
-                                `"${(produtor.observacoes || '').replace(/"/g, '""')}"`, // Escapa aspas duplas dentro do texto
+                                `"${(produtor.relatorioATER && produtor.relatorioATER.assuntosAbordados || '').replace(/"/g, '""')}"`,
+                                `"${(produtor.relatorioATER && produtor.relatorioATER.recomendacoesTecnicas || '').replace(/"/g, '""')}"`,
+                                `"${(produtor.tecnicoResponsavel && produtor.tecnicoResponsavel.nome) || ''}"`,
+                                `"${(produtor.tecnicoResponsavel && produtor.tecnicoResponsavel.cpf) || ''}"`,
+                                `"${(produtor.validacaoProdutor && produtor.validacaoProdutor.confirmaDados) ? 'Sim' : 'Não'}"`,
                                 `"${nomeArquivo}"` // Nome do arquivo da foto
                             ].join(',') + '\n';
                         });
@@ -1391,32 +1657,9 @@
                             }
                         });
                         
-                        // Criar preparacao do solo CSV
-                        let preparacaoSoloCsvContent = "Produtor,Area Cultivada (ha),Cultura Plantada,Area Plantada (ha)\n";
-                        let tempreparacaoSolo = false;
-                        
-                        this.savedData.forEach(produtor => {
-                            if (produtor.preparacaoSolo && produtor.preparacaoSolo.length > 0) {
-                                tempreparacaoSolo = true;
-                                produtor.preparacaoSolo.forEach(preparacao => {
-                                    preparacaoSoloCsvContent += [
-                                        `"${produtor.nome || ''}"`,
-                                        `"${preparacao.areaCultivada || ''}"`,
-                                        `"${preparacao.culturaPlantada || ''}"`,
-                                        `"${preparacao.areaPlantada || ''}"`
-                                    ].join(',') + '\n';
-                                });
-                            }
-                        });
-                        
                         // Adicionar CSV de culturas ao ZIP se houver dados
                         if (temCulturas) {
                             zip.file("culturas_agricolas.csv", culturasCsvContent);
-                        }
-                        
-                        // Adicionar CSV de preparacao do solo ao ZIP se houver dados
-                        if (tempreparacaoSolo) {
-                            zip.file("preparacao_solo.csv", preparacaoSoloCsvContent);
                         }
                         
                         // Adicionar um README.txt explicativo
@@ -1425,8 +1668,7 @@
                                        "Este arquivo ZIP contem:\n" +
                                        "1. produtores_rurais.csv - Dados completos de todos os produtores cadastrados\n" +
                                        (temCulturas ? "2. culturas_agricolas.csv - Detalhes das culturas agricolas por produtor\n" : "") +
-                                       (tempreparacaoSolo ? "3. preparacao_solo.csv - Detalhes da preparacao do solo por produtor\n" : "") +
-                                       `${(temCulturas && tempreparacaoSolo) ? "4" : (temCulturas || tempreparacaoSolo) ? "3" : "2"}. /fotos/ - Diretorio contendo as fotos das propriedades (quando disponiveis)\n\n` +
+                                       `${temCulturas ? "3" : "2"}. /fotos/ - Diretorio contendo as fotos das propriedades (quando disponiveis)\n\n` +
                                        "Data da exportacao: " + new Date().toLocaleString('pt-BR') + "\n";
                         
                         zip.file("LEIA-ME.txt", readme);
@@ -1483,12 +1725,85 @@
                     this.formData.culturas.splice(index, 1);
                 },
                 
-                adicionarpreparacaoSolo() {
-                    this.formData.preparacaoSolo.push({ areaCultivada: '', culturaPlantada: '', areaPlantada: '' });
+                salvarTecnico() {
+                    if (!this.tecnicoData.nome || !this.tecnicoData.cpf) {
+                        alert('Por favor, preencha todos os campos do técnico.');
+                        return;
+                    }
+                    
+                    // Salvar dados do técnico
+                    localStorage.setItem('tecnicoData', JSON.stringify(this.tecnicoData));
+                    
+                    // Fechar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('tecnicoModal'));
+                    modal.hide();
+                    
+                    alert('Dados do técnico salvos com sucesso!');
                 },
                 
-                removerpreparacaoSolo(index) {
-                    this.formData.preparacaoSolo.splice(index, 1);
+                voltarParaFormulario() {
+                    // Ativar a aba do formulário
+                    const formTab = new bootstrap.Tab(document.getElementById('form-tab'));
+                    formTab.show();
+                },
+                
+                finalizarCadastro() {
+                    if (!this.validacaoProdutor.confirmaDados) {
+                        alert('É necessário confirmar os dados antes de finalizar.');
+                        return;
+                    }
+                    
+                    if (!this.validacaoProdutor.assinatura) {
+                        alert('É necessário a assinatura do produtor para finalizar o cadastro.');
+                        return;
+                    }
+                    
+                    // Incluir dados de validação no formData
+                    this.formData.validacaoProdutor = JSON.parse(JSON.stringify(this.validacaoProdutor));
+                    this.formData.tecnicoResponsavel = JSON.parse(JSON.stringify(this.tecnicoData));
+                    
+                    // Salvar dados
+                    this.saveData();
+                    
+                    // Esconder validação e resetar
+                    this.mostrarValidacao = false;
+                    this.validacaoProdutor.confirmaDados = false;
+                    this.validacaoProdutor.assinatura = '';
+                },
+                
+                validarCadastro() {
+                    this.formTocado = true;
+                    const formElement = document.querySelector('form');
+                    if (!formElement.checkValidity()) {
+                        formElement.classList.add('was-validated');
+                        alert('Por favor, preencha todos os campos obrigatórios antes de validar o cadastro.');
+                        return;
+                    }
+                    
+                    // Mostrar seção de validação
+                    this.mostrarValidacao = true;
+                    
+                    // Configurar canvas de assinatura do produtor e scroll
+                    setTimeout(() => {
+                        setupCanvas('assinaturaProdutorCanvas');
+                        const validacaoSection = document.querySelector('.card.mt-4');
+                        if (validacaoSection) {
+                            validacaoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 100);
+                },
+                
+                cancelarValidacao() {
+                    this.mostrarValidacao = false;
+                    this.validacaoProdutor.confirmaDados = false;
+                    this.validacaoProdutor.assinatura = '';
+                    
+                    // Limpar canvas se existir
+                    const canvas = document.getElementById('assinaturaProdutorCanvas');
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
                 },
                 
                 saveData() {
@@ -1537,12 +1852,24 @@
                         qualAssociacao: '',
                         pessoasFamilia: '',
                         situacaoJuridica: '',
+                        nomePropriedade: '',
+                        nomeLocalidade: '',
                         areaTotal: '',
                         areaCapineiraSequeiro: '',
                         areaPastagemNativa: '',
                         areaCultivoSequeiro: '',
                         areaCapimCana: '',
-                        recursosHidricos: '',
+                        recursosHidricos: {
+                            acude: false,
+                            riacho: false,
+                            poco: false,
+                            cacimbao: false,
+                            lagoa: false,
+                            nascente: false,
+                            cisterna: false,
+                            outros: false,
+                            outrosTexto: ''
+                        },
                         tipoEnergia: '',
                         interesseFeira: '',
                         latitude: '',
@@ -1551,6 +1878,13 @@
                         gpsStatus: 'Aguardando localização...',
                         photoBase64: '',
                         culturas: [],
+                        preparacaoSolo: {
+                            analiseSolo: false,
+                            correcao: false,
+                            calagem: false,
+                            garagem: false,
+                            adubacao: false
+                        },
                         reservaAlimentar: {
                             areaProducaoSilagem: '',
                             especieForrageira: '',
@@ -1587,10 +1921,21 @@
                             caprinosComercializadosAno: ''
                         },
                         piscicultura: {
+                            areaProducao: '',
                             producaoPeixe: ''
                         },
-                        observacoes: ''
+                        relatorioATER: {
+                            assuntosAbordados: '',
+                            recomendacoesTecnicas: ''
+                        }
                     };
+                    
+                    // Reset validação do produtor
+                    this.validacaoProdutor = {
+                        confirmaDados: false,
+                        assinatura: ''
+                    };
+                    this.mostrarValidacao = false;
                     this.photoPreview = null;
                     this.gpsError = null;
                     this.editIndex = -1;
@@ -1663,7 +2008,11 @@
                         if (storedData) {
                             this.savedData = JSON.parse(storedData);
                         }
-                        
+                        // Carregar dados do técnico se existirem
+                        const storedTecnico = localStorage.getItem('tecnicoData');
+                        if (storedTecnico) {
+                            this.tecnicoData = JSON.parse(storedTecnico);
+                        }
                         // Configurar data padrão para hoje
                         const today = new Date().toISOString().split('T')[0];
                         this.formData.dataVisita = today;
@@ -1689,6 +2038,96 @@
                     }
                 },
             }));
+        });
+        // Funções para gerenciar assinaturas
+        let isDrawing = false;
+        let currentCanvas = null;
+        
+        function setupCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            function startDrawing(e) {
+                isDrawing = true;
+                currentCanvas = canvas;
+                draw(e);
+            }
+            function draw(e) {
+                if (!isDrawing) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000';
+                
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+            function stopDrawing() {
+                if (isDrawing) {
+                    isDrawing = false;
+                    ctx.beginPath();
+                    
+                    // Salvar assinatura como base64
+                    const dataURL = canvas.toDataURL();
+                    if (canvasId === 'assinaturaCanvas') {
+                        // Assinatura do técnico
+                        Alpine.store('formApp').tecnicoData.assinatura = dataURL;
+                    } else if (canvasId === 'assinaturaProdutorCanvas') {
+                        // Assinatura do produtor
+                        Alpine.store('formApp').validacaoProdutor.assinatura = dataURL;
+                    }
+                }
+            }
+            function handleTouch(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                                 e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }
+        }
+        function limparAssinatura() {
+            const canvas = document.getElementById('assinaturaCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            Alpine.store('formApp').tecnicoData.assinatura = '';
+        }
+        function limparAssinatureProdutor() {
+            const canvas = document.getElementById('assinaturaProdutorCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            Alpine.store('formApp').validacaoProdutor.assinatura = '';
+        }
+        // Configurar canvas quando os modais são mostrados
+        document.addEventListener('DOMContentLoaded', function() {
+            const tecnicoModal = document.getElementById('tecnicoModal');
+            if (tecnicoModal) {
+                tecnicoModal.addEventListener('shown.bs.modal', function() {
+                    setTimeout(() => setupCanvas('assinaturaCanvas'), 100);
+                });
+            }
         });
     </script>
 </body>
