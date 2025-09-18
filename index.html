@@ -1051,8 +1051,9 @@
                         <!-- Relatório de ATER (Assistência Técnica e Extensão Rural) -->
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRelatorioATER" aria-expanded="false" aria-controls="collapseRelatorioATER">
+                                <button class="accordion-button collapsed" :class="hasErroSecao('ater') ? 'bg-erro text-white' : ''" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRelatorioATER" aria-expanded="false" aria-controls="collapseRelatorioATER">
                                     <i class="bi-clipboard-data me-2"></i> Relatório de ATER
+                                    <i class="bi-exclamation-triangle-fill text-danger ms-2" x-show="hasErroSecao('ater')"></i>
                                 </button>
                             </h2>
                             <div id="collapseRelatorioATER" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
@@ -2006,11 +2007,20 @@
                         ],
                         propriedade: [
                             'situacaoJuridica', 'areaTotal', 'recursosHidricos', 'tipoEnergia', 'interesseFeira'
+                        ],
+                        ater: [
+                            'relatorioATER.assuntosAbordados', 'relatorioATER.recomendacoesTecnicas'
                         ]
                     };
                     if (!requireds[secao]) return false;
                     for (const campo of requireds[secao]) {
-                        if (!this.formData[campo]) return true;
+                        // Verificar campos aninhados (ex: relatorioATER.assuntosAbordados)
+                        if (campo.includes('.')) {
+                            const [obj, prop] = campo.split('.');
+                            if (!this.formData[obj] || !this.formData[obj][prop]) return true;
+                        } else {
+                            if (!this.formData[campo]) return true;
+                        }
                     }
                     if (secao === 'produtor' && this.formData.participaAssociacao === 'Sim' && !this.formData.qualAssociacao) return true;
                     return false;
