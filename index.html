@@ -1262,45 +1262,45 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal para Identificação do Técnico -->
-    <div class="modal fade" id="tecnicoModal" tabindex="-1" aria-labelledby="tecnicoModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="tecnicoModalLabel">Identificação do Técnico Responsável</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="tecnicoForm">
-                        <div class="mb-3">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="tecnicoNome" x-model="tecnicoData.nome" required>
-                                <label for="tecnicoNome">Nome Completo</label>
-                            </div>
+            
+            <!-- Modal para Identificação do Técnico -->
+            <div class="modal fade" id="tecnicoModal" tabindex="-1" aria-labelledby="tecnicoModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="tecnicoModalLabel">Identificação do Técnico Responsável</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="mb-3">
-                            <div class="form-floating">
-                                <input type="text" class="form-control" id="tecnicoCpf" x-model="tecnicoData.cpf" required>
-                                <label for="tecnicoCpf">CPF</label>
-                            </div>
+                        <div class="modal-body">
+                            <form id="tecnicoForm">
+                                <div class="mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="tecnicoNome" x-model="tecnicoData.nome" required>
+                                        <label for="tecnicoNome">Nome Completo</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="tecnicoCpf" x-model="tecnicoData.cpf" required>
+                                        <label for="tecnicoCpf">CPF</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tecnicoAssinatura" class="form-label">Assinatura Digital</label>
+                                    <canvas id="assinaturaCanvas" width="400" height="150" class="border rounded" style="width: 100%; height: 150px; cursor: crosshair;"></canvas>
+                                    <div class="mt-2">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limparAssinatura()">
+                                            <i class="bi-arrow-clockwise"></i> Limpar Assinatura
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
-                        <div class="mb-3">
-                            <label for="tecnicoAssinatura" class="form-label">Assinatura Digital</label>
-                            <canvas id="assinaturaCanvas" width="400" height="150" class="border rounded" style="width: 100%; height: 150px; cursor: crosshair;"></canvas>
-                            <div class="mt-2">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limparAssinatura()">
-                                    <i class="bi-arrow-clockwise"></i> Limpar Assinatura
-                                </button>
-                            </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" @click="salvarTecnico">Salvar</button>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" @click="salvarTecnico">Salvar</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1731,14 +1731,28 @@
                         return;
                     }
                     
-                    // Salvar dados do técnico
-                    localStorage.setItem('tecnicoData', JSON.stringify(this.tecnicoData));
-                    
-                    // Fechar modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('tecnicoModal'));
-                    modal.hide();
-                    
-                    alert('Dados do técnico salvos com sucesso!');
+                    try {
+                        // Salvar dados do técnico
+                        localStorage.setItem('tecnicoData', JSON.stringify(this.tecnicoData));
+                        
+                        // Fechar modal
+                        const modalElement = document.getElementById('tecnicoModal');
+                        if (modalElement) {
+                            const modal = bootstrap.Modal.getInstance(modalElement);
+                            if (modal) {
+                                modal.hide();
+                            } else {
+                                // Criar nova instância se não existir
+                                const newModal = new bootstrap.Modal(modalElement);
+                                newModal.hide();
+                            }
+                        }
+                        
+                        alert('Dados do técnico salvos com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao salvar dados do técnico:', error);
+                        alert('Erro ao salvar dados do técnico. Verifique o console para mais detalhes.');
+                    }
                 },
                 
                 voltarParaFormulario() {
@@ -2030,6 +2044,15 @@
                             );
                         }
                         
+                        // Configurar event listeners para assinaturas
+                        document.addEventListener('tecnicoAssinatura', (e) => {
+                            this.tecnicoData.assinatura = e.detail.assinatura;
+                        });
+                        
+                        document.addEventListener('produtorAssinatura', (e) => {
+                            this.validacaoProdutor.assinatura = e.detail.assinatura;
+                        });
+                        
                         console.log('Aplicação inicializada com sucesso');
                     } catch (error) {
                         console.error('Erro ao inicializar aplicação:', error);
@@ -2088,12 +2111,18 @@
                     
                     // Salvar assinatura como base64
                     const dataURL = canvas.toDataURL();
+                    
+                    // Disparar evento customizado para notificar o Alpine.js
                     if (canvasId === 'assinaturaCanvas') {
                         // Assinatura do técnico
-                        Alpine.store('formApp').tecnicoData.assinatura = dataURL;
+                        document.dispatchEvent(new CustomEvent('tecnicoAssinatura', { 
+                            detail: { assinatura: dataURL } 
+                        }));
                     } else if (canvasId === 'assinaturaProdutorCanvas') {
                         // Assinatura do produtor
-                        Alpine.store('formApp').validacaoProdutor.assinatura = dataURL;
+                        document.dispatchEvent(new CustomEvent('produtorAssinatura', { 
+                            detail: { assinatura: dataURL } 
+                        }));
                     }
                 }
             }
@@ -2112,13 +2141,21 @@
             const canvas = document.getElementById('assinaturaCanvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            Alpine.store('formApp').tecnicoData.assinatura = '';
+            
+            // Disparar evento para limpar assinatura do técnico
+            document.dispatchEvent(new CustomEvent('tecnicoAssinatura', { 
+                detail: { assinatura: '' } 
+            }));
         }
         function limparAssinatureProdutor() {
             const canvas = document.getElementById('assinaturaProdutorCanvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            Alpine.store('formApp').validacaoProdutor.assinatura = '';
+            
+            // Disparar evento para limpar assinatura do produtor
+            document.dispatchEvent(new CustomEvent('produtorAssinatura', { 
+                detail: { assinatura: '' } 
+            }));
         }
         // Configurar canvas quando os modais são mostrados
         document.addEventListener('DOMContentLoaded', function() {
